@@ -62,7 +62,8 @@ public class AIChatController {
 
     @Operation(summary = "new threads", description = "Create a chat threads")
     @PutMapping("/platforms/{platformId}/threads")
-    public ResponseEntity<ChatThreadVO> createChatThreads(@PathVariable Long platformId, @RequestParam String model) {
+    public ResponseEntity<ChatThreadVO> createChatThreads(
+            @PathVariable Long platformId, @RequestParam String model) {
         return ResponseEntity.success(chatService.createChatThreads(platformId, model));
     }
 
@@ -78,7 +79,8 @@ public class AIChatController {
 
     @Operation(summary = "get", description = "Get all threads of a platform")
     @GetMapping("platforms/{platformId}/threads")
-    public ResponseEntity<List<ChatThreadVO>> getAllChatThreads(@PathVariable Long platformId, @RequestParam(value = "model", required = false) String model) {
+    public ResponseEntity<List<ChatThreadVO>> getAllChatThreads(
+            @PathVariable Long platformId, @RequestParam(value = "model", required = false) String model) {
         return ResponseEntity.success(chatService.getAllChatThreads(platformId, model));
     }
 
