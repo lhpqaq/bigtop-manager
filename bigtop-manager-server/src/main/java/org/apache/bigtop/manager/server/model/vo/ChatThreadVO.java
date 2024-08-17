@@ -21,6 +21,4 @@ public class ChatThreadVO {
         this.createTime = createTime;
         this.updateTime = createTime;
     }
-
-    public ChatThreadVO() {}
 }

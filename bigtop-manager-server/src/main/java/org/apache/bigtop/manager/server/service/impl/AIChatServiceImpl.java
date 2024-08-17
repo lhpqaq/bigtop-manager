@@ -7,6 +7,7 @@ import org.apache.bigtop.manager.server.model.vo.ChatThreadVO;
 import org.apache.bigtop.manager.server.model.vo.PlatformAuthorizedVO;
 import org.apache.bigtop.manager.server.model.vo.PlatformVO;
 import org.apache.bigtop.manager.server.service.AIChatService;
+import org.apache.bigtop.manager.server.utils.DateTimeUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -60,17 +61,7 @@ public class AIChatServiceImpl implements AIChatService {
     @Override
     public ChatThreadVO createChatThreads(Long platformId, String model) {
 
-        ChatThreadVO chatThreadVO = new ChatThreadVO();
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String formattedNow = now.format(formatter);
-
-        chatThreadVO.setThreadId(1L);
-        chatThreadVO.setCreateTime(formattedNow);
-        chatThreadVO.setUpdateTime(formattedNow);
-        chatThreadVO.setPlatformId(platformId);
-        chatThreadVO.setModel(model);
-        return chatThreadVO;
+        return new ChatThreadVO(1L, platformId, model, DateTimeUtils.now());
     }
 
     @Override
@@ -82,17 +73,13 @@ public class AIChatServiceImpl implements AIChatService {
 
     @Override
     public List<ChatThreadVO> getAllChatThreads(Long platformId, String model) {
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String formattedNow = now.format(formatter);
         List<ChatThreadVO> chatThreads = new ArrayList<>();
         if (model == null || model.equals("GPT-3.5")) {
-            ChatThreadVO chatThreadVO = new ChatThreadVO(1L,platformId,"GPT-3.5",formattedNow);
+            ChatThreadVO chatThreadVO = new ChatThreadVO(1L,platformId, "GPT-3.5", DateTimeUtils.now());
             chatThreads.add(chatThreadVO);
         }
         if (model == null || model.equals("GPT-4o")) {
-            ChatThreadVO chatThreadVO = new ChatThreadVO(2L, platformId, "GPT-4o", formattedNow);
-            chatThreadVO.setUpdateTime(LocalDateTime.now().format(formatter));
+            ChatThreadVO chatThreadVO = new ChatThreadVO(2L, platformId, "GPT-4o", DateTimeUtils.now());
             chatThreads.add(chatThreadVO);
         }
         return chatThreads;
@@ -149,7 +136,6 @@ public class AIChatServiceImpl implements AIChatService {
     public List<ChatMessageVO> history(Long platformId, Long threadId) {
         List<ChatMessageVO> chatMessages = new ArrayList<>();
         Random random = new Random();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         int numberOfMessages = random.nextInt(11);
         boolean isUser = true;
 
@@ -157,9 +143,8 @@ public class AIChatServiceImpl implements AIChatService {
             String sender = isUser ? "user" : "AI";
             String messageText = isUser ? "hello" : "hello, I'm GPT";
             messageText += i;
-            String createTime = LocalDateTime.now().format(formatter);
 
-            ChatMessageVO message = new ChatMessageVO(sender, messageText, createTime);
+            ChatMessageVO message = new ChatMessageVO(sender, messageText, DateTimeUtils.now());
             chatMessages.add(message);
 
             isUser = !isUser;
