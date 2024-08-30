@@ -58,7 +58,11 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 import jakarta.annotation.Resource;
-
+import java.util.Objects;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 @Slf4j
 @Service
 public class AIChatServiceImpl implements AIChatService {

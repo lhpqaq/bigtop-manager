@@ -41,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 
 @Slf4j
-@Configuration
 public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
 
     private final SystemPromptProvider systemPromptProvider;
