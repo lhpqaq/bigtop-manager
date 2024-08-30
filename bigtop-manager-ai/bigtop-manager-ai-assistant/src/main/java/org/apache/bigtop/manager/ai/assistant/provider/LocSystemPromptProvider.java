@@ -35,7 +35,7 @@ import java.nio.file.Files;
 public class LocSystemPromptProvider implements SystemPromptProvider {
 
     private static final String SYSTEM_PROMPT_PATH =
-            "/bigtop-manager-ai/bigtop-manager-ai-assistant/src/main/resources/";
+            "bigtop-manager-ai/bigtop-manager-ai-assistant/src/main/resources/";
 
     @Override
     public SystemMessage getSystemPrompt(SystemPrompt systemPrompt) {
@@ -64,7 +64,7 @@ public class LocSystemPromptProvider implements SystemPromptProvider {
     }
 
     private SystemMessage loadPromptFromFile(String fileName) {
-        final String filePath = System.getProperty("user.dir") + SYSTEM_PROMPT_PATH + fileName + ".st";
+        final String filePath = SYSTEM_PROMPT_PATH + fileName + ".st";
         String text = loadTextFromFile(filePath);
         if (text == null) {
             return SystemMessage.from("You are a helpful assistant.");
@@ -74,8 +74,7 @@ public class LocSystemPromptProvider implements SystemPromptProvider {
     }
 
     public SystemMessage getLanguagePrompt(String local) {
-        final String filePath = System.getProperty("user.dir") + SYSTEM_PROMPT_PATH
-                + SystemPrompt.LANGUAGE_PROMPT.getValue() + '-' + local + ".st";
+        final String filePath = SYSTEM_PROMPT_PATH + SystemPrompt.LANGUAGE_PROMPT.getValue() + '-' + local + ".st";
         String text = loadTextFromFile(filePath);
         if (text == null) {
             return SystemMessage.from("Answer in " + local);
