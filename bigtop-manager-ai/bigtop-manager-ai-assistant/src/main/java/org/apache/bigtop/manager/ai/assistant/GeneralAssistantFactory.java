@@ -31,8 +31,6 @@ import org.apache.bigtop.manager.ai.openai.OpenAIAssistant;
 
 import org.apache.commons.lang3.NotImplementedException;
 
-import org.springframework.context.annotation.Configuration;
-
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;

@@ -34,8 +34,7 @@ import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 
 public class OpenAIAssistant extends AbstractAIAssistant {
 
-    //    private static final String BASE_URL = "https://api.openai.com/v1";
-    private static final String BASE_URL = "https://api.chatanywhere.tech/v1";
+    private static final String BASE_URL = "https://api.openai.com/v1";
 
     private OpenAIAssistant(
             ChatLanguageModel chatLanguageModel,
