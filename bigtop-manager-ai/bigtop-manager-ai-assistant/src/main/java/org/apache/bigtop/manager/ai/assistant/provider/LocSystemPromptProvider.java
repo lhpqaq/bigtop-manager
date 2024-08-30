@@ -34,7 +34,8 @@ import java.nio.file.Files;
 @Slf4j
 public class LocSystemPromptProvider implements SystemPromptProvider {
 
-    private static final String SYSTEM_PROMPT_PATH = "src/main/resources/";
+    private static final String SYSTEM_PROMPT_PATH =
+            "/bigtop-manager-ai/bigtop-manager-ai-assistant/src/main/resources/";
 
     @Override
     public SystemMessage getSystemPrompt(SystemPrompt systemPrompt) {
@@ -50,17 +51,36 @@ public class LocSystemPromptProvider implements SystemPromptProvider {
         return getSystemPrompt(SystemPrompt.DEFAULT_PROMPT);
     }
 
-    private SystemMessage loadPromptFromFile(String fileName) {
-        final String filePath = SYSTEM_PROMPT_PATH + fileName + ".st";
+    private String loadTextFromFile(String fileName) {
         try {
-            File file = ResourceUtils.getFile(filePath);
-            String text = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            return SystemMessage.from(text);
+            File file = ResourceUtils.getFile(fileName);
+            return Files.readString(file.toPath(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             log.error(
                     "Exception occurred while loading SystemPrompt from local. Here is some information:{}",
                     e.getMessage());
+            return null;
+        }
+    }
+
+    private SystemMessage loadPromptFromFile(String fileName) {
+        final String filePath = System.getProperty("user.dir") + SYSTEM_PROMPT_PATH + fileName + ".st";
+        String text = loadTextFromFile(filePath);
+        if (text == null) {
             return SystemMessage.from("You are a helpful assistant.");
+        } else {
+            return SystemMessage.from(text);
+        }
+    }
+
+    public SystemMessage getLanguagePrompt(String local) {
+        final String filePath = System.getProperty("user.dir") + SYSTEM_PROMPT_PATH
+                + SystemPrompt.LANGUAGE_PROMPT.getValue() + '-' + local + ".st";
+        String text = loadTextFromFile(filePath);
+        if (text == null) {
+            return SystemMessage.from("Answer in " + local);
+        } else {
+            return SystemMessage.from(text);
         }
     }
 }

@@ -50,18 +50,16 @@ import org.apache.bigtop.manager.server.model.vo.PlatformVO;
 import org.apache.bigtop.manager.server.service.AIChatService;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
 import jakarta.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
+@Slf4j
 @Service
 public class AIChatServiceImpl implements AIChatService {
     @Resource
@@ -91,6 +89,7 @@ public class AIChatServiceImpl implements AIChatService {
     private AIAssistantConfig getAIAssistantConfig(PlatformAuthorizedDTO platformAuthorizedDTO) {
         return AIAssistantConfig.builder()
                 .setModel(platformAuthorizedDTO.getModel())
+                .setLanguage(LocaleContextHolder.getLocale().toString())
                 .addCredentials(platformAuthorizedDTO.getCredentials())
                 .build();
     }
@@ -109,7 +108,9 @@ public class AIChatServiceImpl implements AIChatService {
 
     private Boolean testAuthorization(PlatformAuthorizedDTO platformAuthorizedDTO) {
         AIAssistant aiAssistant = aiTestFactory.create(
-                getPlatformType(platformAuthorizedDTO.getPlatformName()), getAIAssistantConfig(platformAuthorizedDTO));
+                getPlatformType(platformAuthorizedDTO.getPlatformName()),
+                getAIAssistantConfig(platformAuthorizedDTO),
+                LocaleContextHolder.getLocale().toString());
         try {
             aiAssistant.ask("1+1=");
         } catch (Exception e) {

@@ -31,12 +31,17 @@ import org.apache.bigtop.manager.ai.openai.OpenAIAssistant;
 
 import org.apache.commons.lang3.NotImplementedException;
 
+import org.springframework.context.annotation.Configuration;
+
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
 
+@Slf4j
+@Configuration
 public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
 
     private final SystemPromptProvider systemPromptProvider;
@@ -78,6 +83,11 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
 
         SystemMessage systemPrompt = systemPromptProvider.getSystemPrompt(systemPrompts);
         aiAssistant.setSystemPrompt(systemPrompt);
+        String local = assistantConfig.getLanguage();
+        if (local != null) {
+            log.info("set language prompt");
+            aiAssistant.setSystemPrompt(systemPromptProvider.getLanguagePrompt(local));
+        }
         return aiAssistant;
     }
 
