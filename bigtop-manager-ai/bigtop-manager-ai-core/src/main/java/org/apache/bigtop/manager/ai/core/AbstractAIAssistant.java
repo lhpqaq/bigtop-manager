@@ -37,7 +37,7 @@ public abstract class AbstractAIAssistant implements AIAssistant {
     private final Object assistantId;
     private final ChatMemory chatMemory;
 
-    protected static final Integer MEMORY_LEN = 10;
+    protected static final Integer MEMORY_LEN = 11;
 
     public AbstractAIAssistant(
             ChatLanguageModel chatLanguageModel,
