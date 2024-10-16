@@ -344,7 +344,6 @@ CREATE TABLE `llm_chat_thread`
 (
     `id`          BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
     `auth_id`     BIGINT(20) UNSIGNED NOT NULL,
-    `platform_id` BIGINT(20) UNSIGNED NOT NULL,
     `user_id`     BIGINT(20) UNSIGNED NOT NULL,
     `is_deleted`  TINYINT(1)          DEFAULT 0 NULL,
     `thread_info` TEXT                DEFAULT NULL,
@@ -354,7 +353,6 @@ CREATE TABLE `llm_chat_thread`
     `update_by`   BIGINT              DEFAULT NULL,
     PRIMARY KEY (`id`),
     KEY             `idx_auth_id` (`auth_id`),
-    KEY             `idx_platform_id` (`platform_id`),
     KEY             `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

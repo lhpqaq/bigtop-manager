@@ -355,7 +355,6 @@ CREATE TABLE llm_chat_thread
 (
     id          BIGINT CHECK (id > 0)          NOT NULL GENERATED ALWAYS AS IDENTITY,
     auth_id     BIGINT CHECK (auth_id > 0) NOT NULL,
-    platform_id BIGINT CHECK (platform_id > 0) NOT NULL,
     user_id     BIGINT CHECK (user_id > 0)     NOT NULL,
     thread_info TEXT         DEFAULT NULL,
     is_deleted  BOOLEAN      DEFAULT FALSE,
@@ -367,7 +366,6 @@ CREATE TABLE llm_chat_thread
 );
 
 CREATE INDEX idx_chatthread_auth_id ON llm_chat_thread (auth_id);
-CREATE INDEX idx_chatthread_platform_id ON llm_chat_thread (platform_id);
 CREATE INDEX idx_chatthread_user_id ON llm_chat_thread (user_id);
 
 CREATE TABLE llm_chat_message
