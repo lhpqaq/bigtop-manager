@@ -73,7 +73,7 @@ class ChatbotControllerTest {
         String model = "";
         ChatThreadVO chatThread = new ChatThreadVO();
 
-        when(chatbotService.createChatThreads(eq(platformId), eq(model))).thenReturn(chatThread);
+        when(chatbotService.createChatThreads(eq(platformId))).thenReturn(chatThread);
 
         ResponseEntity<ChatThreadVO> response = chatbotController.createChatThreads(platformId);
 

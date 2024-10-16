@@ -52,14 +52,14 @@ public class ChatbotController {
     @Operation(summary = "new thread", description = "Create a chat threads")
     @PostMapping("/auth-platforms/{authId}/threads")
     public ResponseEntity<ChatThreadVO> createChatThreads(@PathVariable Long authId) {
-        return ResponseEntity.success(chatbotService.createChatThreads(authId, ""));
+        return ResponseEntity.success(chatbotService.createChatThreads(authId));
     }
 
     @Operation(summary = "update thread", description = "Update a chat threads")
     @PutMapping("/auth-platforms/{authId}/threads")
     public ResponseEntity<ChatThreadVO> updateChatThreads(
             @PathVariable Long authId, @RequestBody ChatbotThreadReq chatbotThreadReq) {
-        return ResponseEntity.success(chatbotService.createChatThreads(authId, ""));
+        return ResponseEntity.success(chatbotService.createChatThreads(authId));
     }
 
     @Operation(summary = "delete thread", description = "Delete a chat threads")

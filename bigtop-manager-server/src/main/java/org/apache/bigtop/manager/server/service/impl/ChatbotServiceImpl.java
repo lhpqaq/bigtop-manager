@@ -109,7 +109,7 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     @Override
-    public ChatThreadVO createChatThreads(Long authId, String model) {
+    public ChatThreadVO createChatThreads(Long authId) {
         AuthPlatformPO authPlatformPO = authPlatformDao.findById(authId);
         if (authPlatformPO == null || AuthPlatformStatus.isDeleted(authPlatformPO.getStatus())) {
             throw new ApiException(ApiExceptionEnum.PLATFORM_NOT_AUTHORIZED);
@@ -117,21 +117,16 @@ public class ChatbotServiceImpl implements ChatbotService {
         AuthPlatformDTO authPlatformDTO = AuthPlatformConverter.INSTANCE.fromPO2DTO(authPlatformPO);
         Long userId = SessionUserHolder.getUserId();
         PlatformPO platformPO = platformDao.findById(authPlatformPO.getPlatformId());
-        List<String> supportModels = List.of(platformPO.getSupportModels().split(","));
-        if (!supportModels.contains(model)) {
-            throw new ApiException(ApiExceptionEnum.MODEL_NOT_SUPPORTED);
-        }
         ChatThreadDTO chatThreadDTO = new ChatThreadDTO();
         chatThreadDTO.setPlatformId(platformPO.getId());
         chatThreadDTO.setAuthId(authPlatformPO.getId());
 
-        AIAssistant aiAssistant =
-                buildAIAssistant(platformPO.getName(), model, authPlatformDTO.getAuthCredentials(), null, null);
+        AIAssistant aiAssistant = buildAIAssistant(
+                platformPO.getName(), authPlatformDTO.getModel(), authPlatformDTO.getAuthCredentials(), null, null);
         Map<String, String> threadInfo = aiAssistant.createThread();
         chatThreadDTO.setThreadInfo(threadInfo);
         ChatThreadPO chatThreadPO = ChatThreadConverter.INSTANCE.fromDTO2PO(chatThreadDTO);
         chatThreadPO.setUserId(userId);
-        chatThreadPO.setModel(model);
         chatThreadDao.save(chatThreadPO);
         return ChatThreadConverter.INSTANCE.fromPO2VO(chatThreadPO);
     }
@@ -184,7 +179,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         PlatformPO platformPO = platformDao.findById(authPlatformPO.getPlatformId());
         AIAssistant aiAssistant = buildAIAssistant(
                 platformPO.getName(),
-                chatThreadPO.getModel(),
+                authPlatformDTO.getModel(),
                 authPlatformDTO.getAuthCredentials(),
                 chatThreadPO.getId(),
                 chatThreadDTO.getThreadInfo());

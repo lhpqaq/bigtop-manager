@@ -27,7 +27,7 @@ import java.util.List;
 
 public interface ChatbotService {
 
-    ChatThreadVO createChatThreads(Long authId, String model);
+    ChatThreadVO createChatThreads(Long authId);
 
     boolean deleteChatThreads(Long authId, Long threadId);
 
