@@ -65,6 +65,7 @@ public enum LocaleKeys {
     CHAT_THREAD_NOT_FOUND("chat.thread.not.found"),
 
     CHAT_LANGUAGE_PROMPT("chat.language.prompt"),
+    NO_PLATFORM_IN_USE("no.platform.in.use"),
     ;
 
     private final String key;
