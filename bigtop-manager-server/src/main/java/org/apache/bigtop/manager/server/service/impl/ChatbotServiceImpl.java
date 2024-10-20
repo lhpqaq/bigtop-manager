@@ -122,7 +122,7 @@ public class ChatbotServiceImpl implements ChatbotService {
     public ChatThreadVO createChatThreads() {
         AuthPlatformPO authPlatformPO = getActiveAuthPlatform();
         if (authPlatformPO == null || authPlatformPO.getIsDeleted()) {
-            throw new ApiException(ApiExceptionEnum.PLATFORM_NOT_AUTHORIZED);
+            throw new ApiException(ApiExceptionEnum.NO_PLATFORM_IN_USE);
         }
         AuthPlatformDTO authPlatformDTO = AuthPlatformConverter.INSTANCE.fromPO2DTO(authPlatformPO);
         Long userId = SessionUserHolder.getUserId();
@@ -151,10 +151,8 @@ public class ChatbotServiceImpl implements ChatbotService {
         chatThreadPO.setIsDeleted(true);
         chatThreadDao.partialUpdateById(chatThreadPO);
         List<ChatMessagePO> chatMessagePOS = chatMessageDao.findAllByThreadId(threadId);
-        for (ChatMessagePO chatMessagePO : chatMessagePOS) {
-            chatMessagePO.setIsDeleted(true);
-            chatMessageDao.partialUpdateById(chatMessagePO);
-        }
+        chatMessagePOS.forEach(chatMessagePO -> chatMessagePO.setIsDeleted(true));
+        chatMessageDao.partialUpdateByIds(chatMessagePOS);
 
         return true;
     }
@@ -187,8 +185,10 @@ public class ChatbotServiceImpl implements ChatbotService {
             throw new ApiException(ApiExceptionEnum.CHAT_THREAD_NOT_FOUND);
         }
         AuthPlatformPO authPlatformPO = getActiveAuthPlatform();
-        if (authPlatformPO == null) {
-            throw new ApiException(ApiExceptionEnum.NO_PLATFORM_IN_USE);
+        if (authPlatformPO == null
+                || authPlatformPO.getIsDeleted()
+                || !authPlatformPO.getId().equals(chatThreadPO.getAuthId())) {
+            throw new ApiException(ApiExceptionEnum.PLATFORM_NOT_IN_USE);
         }
         AuthPlatformDTO authPlatformDTO = AuthPlatformConverter.INSTANCE.fromPO2DTO(authPlatformPO);
         ChatThreadDTO chatThreadDTO = ChatThreadConverter.INSTANCE.fromPO2DTO(chatThreadPO);

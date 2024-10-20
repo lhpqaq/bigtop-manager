@@ -207,6 +207,10 @@ public class LLMConfigServiceImpl implements LLMConfigService {
             throw new ApiException(ApiExceptionEnum.PLATFORM_NOT_AUTHORIZED);
         }
 
+        if (AuthPlatformStatus.isActive(authPlatformPO.getStatus())) {
+            throw new ApiException(ApiExceptionEnum.PLATFORM_IS_ACTIVE);
+        }
+
         authPlatformPO.setIsDeleted(true);
         authPlatformDao.partialUpdateById(authPlatformPO);
 
