@@ -48,6 +48,7 @@ public class PrometheusServerScript extends AbstractServerScript {
 
     @Override
     public ShellResult start(Params params) {
+        /// TODO: can't catch exception
         configure(params);
         PrometheusParams prometheusParams = (PrometheusParams) params;
         String cmd = MessageFormat.format(

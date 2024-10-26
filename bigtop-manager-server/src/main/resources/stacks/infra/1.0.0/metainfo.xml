@@ -32,8 +32,8 @@
                 <repo-id>Infra-1.0.0</repo-id>
                 <repo-name>Infra-1.0.0 for RockyLinux-8 x86_64</repo-name>
                 <repo-type>tarball</repo-type>
-                <os>rocky8</os>
-                <arch>x86_64</arch>
+                <os>openeuler22</os>
+                <arch>aarch64</arch>
                 <base-url>http://123.56.2.244/infra/1.0.0/tarballs/</base-url>
             </repo>
         </repos>
