@@ -115,6 +115,8 @@ public abstract class BaseParams implements Params {
         RepoInfo repo = this.repo();
         List<PackageInfo> packageInfoList = new ArrayList<>();
         for (PackageSpecificInfo packageSpecificInfo : this.commandPayload.getPackageSpecifics()) {
+            log.info(packageSpecificInfo.toString());
+            log.info(repo.toString());
             if (!packageSpecificInfo.getOs().contains(repo.getOs())
                     || !packageSpecificInfo.getArch().contains(repo.getArch())) {
                 continue;

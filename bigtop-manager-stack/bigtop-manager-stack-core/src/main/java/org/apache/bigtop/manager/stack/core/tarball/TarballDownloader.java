@@ -34,6 +34,7 @@ public class TarballDownloader {
         HttpURLConnection httpConn = null;
         try {
             URL url = new URL(fileUrl);
+            log.info(String.valueOf(url));
             httpConn = (HttpURLConnection) url.openConnection();
             int responseCode = httpConn.getResponseCode();
 

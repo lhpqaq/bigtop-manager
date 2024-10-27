@@ -46,9 +46,11 @@ public abstract class AbstractScript implements Script {
     }
 
     public ShellResult install(Params params, Properties properties) {
+        log.info(String.valueOf(params));
         if (params.repo().getRepoType().equals(REPO_TYPE_BINARY)) {
             return installBinary(params);
         } else if (params.repo().getRepoType().equals(REPO_TYPE_TARBALL)) {
+            log.info("install tarball pro");
             return installTarball(params, properties);
         } else {
             log.error("Unsupported repo type: {}", params.repo().getRepoType());
@@ -67,7 +69,7 @@ public abstract class AbstractScript implements Script {
         List<PackageInfo> packages = params.packages();
         String stackHome = params.stackHome();
         String serviceHome = params.serviceHome();
-
+        log.info(packages.toString());
         for (PackageInfo packageInfo : packages) {
             Integer skipLevels = Integer.parseInt(properties.getProperty(PROPERTY_KEY_SKIP_LEVELS, "0"));
             TarballUtils.installPackage(repo.getBaseUrl(), stackHome, serviceHome, packageInfo, skipLevels);
