@@ -108,6 +108,7 @@ public class LocalSettings {
         if (file.exists()) {
             repoInfoList = JsonUtils.readFromFile(file, new TypeReference<>() {});
         }
+        log.info(repoInfoList.toString());
         return repoInfoList;
     }
 

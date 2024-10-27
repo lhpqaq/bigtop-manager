@@ -110,6 +110,7 @@ public class StackExecutor {
                 runBeforeHook(command, params);
 
                 log.info("Executing {}::{}", script.getName(), method.getName());
+                log.info(script.toString());
                 ShellResult result = (ShellResult) method.invoke(script, params);
                 if (result.getExitCode() != MessageConstants.SUCCESS_CODE) {
                     log.error("Error executing script: {}", result.getErrMsg());

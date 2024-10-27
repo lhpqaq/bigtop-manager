@@ -31,7 +31,7 @@ spring:
     banner-mode: log
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/bigtop_manager
+    url: jdbc:postgresql://10.211.55.2:5432/bigtop_manager
     username: postgres
     password: postgres
     type: com.zaxxer.hikari.HikariDataSource
