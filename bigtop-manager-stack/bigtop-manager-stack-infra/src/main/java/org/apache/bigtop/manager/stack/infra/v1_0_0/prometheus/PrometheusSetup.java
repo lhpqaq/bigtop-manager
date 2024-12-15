@@ -27,6 +27,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.text.MessageFormat;
+
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PrometheusSetup {
@@ -37,6 +39,15 @@ public class PrometheusSetup {
         String group = prometheusParams.group();
 
         LinuxFileUtils.createDirectories(prometheusParams.dataDir(), user, group, Constants.PERMISSION_755, true);
+        log.info(prometheusParams.getPrometheusContent());
+        log.info(prometheusParams.getGlobalParamsMap().toString());
+        LinuxFileUtils.toFileByTemplate(
+                prometheusParams.getPrometheusContent(),
+                MessageFormat.format("{0}/prometheus.yml", prometheusParams.confDir()),
+                user,
+                group,
+                Constants.PERMISSION_644,
+                prometheusParams.getGlobalParamsMap());
 
         return ShellResult.success("Prometheus Configure success!");
     }

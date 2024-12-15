@@ -30,6 +30,9 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -38,12 +41,20 @@ import java.util.Map;
 @NoArgsConstructor
 public class PrometheusParams extends InfraParams {
 
+    private List<Map<String, Object>> prometheusScrapeJobs;
+    private String prometheusContent;
+
     public PrometheusParams(CommandPayload commandPayload) {
         super(commandPayload);
+        globalParamsMap.put("scrape_jobs", prometheusScrapeJobs);
     }
 
     public String dataDir() {
         return MessageFormat.format("{0}/data", serviceHome());
+    }
+
+    public String confDir() {
+        return MessageFormat.format("{0}", serviceHome());
     }
 
     @Override
@@ -52,15 +63,26 @@ public class PrometheusParams extends InfraParams {
     }
 
     @GlobalParams
-    public Map<String, Object> scapeJobs() {
+    public Map<String, Object> scrapeConfigs() {
+        List<Map<String, Object>> jobs = new ArrayList<>();
         Map<String, Object> configuration = LocalSettings.configurations(getServiceName(), "prometheus");
+        prometheusContent = (String) configuration.get("content");
         log.info(configuration.toString());
-        Map<String, Object> scapeJobs = (Map<String, Object>) configuration.get("scape_jobs");
-        log.info(scapeJobs.toString());
-        for (Map.Entry<String, Object> entry : scapeJobs.entrySet()) {
-            Map<String, Object> scapeJob = (Map<String, Object>) entry.getValue();
-            log.info(scapeJob.toString());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> scrapeJobs = (Map<String, Object>) configuration.get("scrape_jobs");
+        log.info(scrapeJobs.toString());
+        for (Map.Entry<String, Object> entry : scrapeJobs.entrySet()) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> scrapeJob = (Map<String, Object>) entry.getValue();
+            Map<String, Object> job = new HashMap<>();
+            job.put("name", scrapeJob.get("job_name"));
+            job.put("targets", scrapeJob.get("job_targets"));
+            job.put("scrape_interval", scrapeJob.get("job_scrape_interval"));
+            jobs.add(job);
+            log.info(job.toString());
         }
+        log.info(jobs.toString());
+        prometheusScrapeJobs = jobs;
         return configuration;
     }
 }
