@@ -42,6 +42,15 @@ scrape_configs:
 
     static_configs:
       - targets: ['localhost:9090']
+
+<#list scrapeJobs as job>
+  - job_name: "${job.name}"
+
+    scrape_interval: ${job.scrapeInterval}
+
+    static_configs:
+      - targets: ${job.targets}
+</#list>
 ]]>
         </value>
         <attrs>

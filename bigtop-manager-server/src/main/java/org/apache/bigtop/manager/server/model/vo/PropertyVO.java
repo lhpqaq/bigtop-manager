@@ -20,6 +20,8 @@ package org.apache.bigtop.manager.server.model.vo;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class PropertyVO {
 
@@ -32,4 +34,6 @@ public class PropertyVO {
     private String desc;
 
     private AttrsVO attrs;
+
+    private List<PropertyVO> values;
 }

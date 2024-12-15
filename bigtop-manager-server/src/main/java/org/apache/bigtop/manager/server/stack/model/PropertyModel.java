@@ -23,6 +23,8 @@ import lombok.Data;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElementWrapper;
+import java.util.List;
 
 @Data
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -40,4 +42,8 @@ public class PropertyModel {
 
     @XmlElement(name = "attrs")
     private AttrsModel attrs;
+
+    @XmlElementWrapper(name = "values")
+    @XmlElement(name = "property")
+    private List<PropertyModel> values;
 }
