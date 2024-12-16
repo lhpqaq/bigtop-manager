@@ -19,7 +19,9 @@
 package org.apache.bigtop.manager.stack.infra.v1_0_0.prometheus;
 
 import org.apache.bigtop.manager.common.message.entity.payload.CommandPayload;
+import org.apache.bigtop.manager.stack.core.annotations.GlobalParams;
 import org.apache.bigtop.manager.stack.core.spi.param.Params;
+import org.apache.bigtop.manager.stack.core.utils.LocalSettings;
 import org.apache.bigtop.manager.stack.infra.param.InfraParams;
 
 import com.google.auto.service.AutoService;
@@ -28,6 +30,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.text.MessageFormat;
+import java.util.Map;
 
 @Getter
 @Slf4j
@@ -46,5 +49,18 @@ public class PrometheusParams extends InfraParams {
     @Override
     public String getServiceName() {
         return "prometheus";
+    }
+
+    @GlobalParams
+    public Map<String, Object> scapeJobs() {
+        Map<String, Object> configuration = LocalSettings.configurations(getServiceName(), "prometheus");
+        log.info(configuration.toString());
+        Map<String, Object> scapeJobs = (Map<String, Object>) configuration.get("scape_jobs");
+        log.info(scapeJobs.toString());
+        for (Map.Entry<String, Object> entry : scapeJobs.entrySet()) {
+            Map<String, Object> scapeJob = (Map<String, Object>) entry.getValue();
+            log.info(scapeJob.toString());
+        }
+        return configuration;
     }
 }

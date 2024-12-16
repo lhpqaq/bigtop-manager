@@ -17,14 +17,63 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
 -->
-
+<!--<property>-->
+<!--    <name>name</name>-->
+<!--    <values>prometheus</values>-->
+<!--    <property>-->
+<!--        <property>-->
+<!--            <name>job_name</name>-->
+<!--            <value>job</value>-->
+<!--            <description>Job name</description>-->
+<!--        </property>-->
+<!--        <name>job_targets</name>-->
+<!--        <values>-->
+<!--            <property>-->
+<!--                <name>target1</name>-->
+<!--                <value>localhost:9090</value>-->
+<!--            </property>-->
+<!--        </values>-->
+<!--        <description>Job targets</description>-->
+<!--    </property>-->
+<!--    <property>-->
+<!--        <name>job_scrape_interval</name>-->
+<!--        <value>5s</value>-->
+<!--        <description>scrape targets from this job every scrape_interval.</description>-->
+<!--    </property>-->
 <configuration>
+    <property>
+        <name>scrape_jobs</name>
+        <values>
+            <property>
+                <name>scrape_config1</name>
+                <values>
+                    <property>
+                            <name>job_name</name>
+                            <value>job</value>
+                            <description>Job name</description>
+                    </property>
+                    <property>
+                        <name>job_targets</name>
+                        <value>['localhost:9090']</value>
+                        <description>Job targets</description>
+                    </property>
+                    <property>
+                        <name>job_scrape_interval</name>
+                        <value>5s</value>
+                        <description>scrape targets from this job every scrape_interval.</description>
+                    </property>
+                </values>
+                <description>A scrape configuration containing exactly one endpoint to scrape.</description>
+            </property>
+        </values>
+        <description>A scrape configuration containing exactly one endpoint to scrape.</description>
+    </property>
     <property>
         <name>content</name>
         <description>This is the freemarker template for prometheus.yml file</description>
         <value><![CDATA[
 global:
-  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  scrape_interval:     ${scrape_interval} # By default, scrape targets every 15 seconds.
 
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
@@ -43,10 +92,10 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-<#list scrapeJobs as job>
-  - job_name: "${job.name}"
+<#list scrape_jobs as job>
+  - job_name: '${job.name}'
 
-    scrape_interval: ${job.scrapeInterval}
+    scrape_interval: ${job.scrape_interval}
 
     static_configs:
       - targets: ${job.targets}
