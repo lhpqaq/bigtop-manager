@@ -17,39 +17,22 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
 -->
-<!--<property>-->
-<!--    <name>name</name>-->
-<!--    <values>prometheus</values>-->
-<!--    <property>-->
-<!--        <property>-->
-<!--            <name>job_name</name>-->
-<!--            <value>job</value>-->
-<!--            <description>Job name</description>-->
-<!--        </property>-->
-<!--        <name>job_targets</name>-->
-<!--        <values>-->
-<!--            <property>-->
-<!--                <name>target1</name>-->
-<!--                <value>localhost:9090</value>-->
-<!--            </property>-->
-<!--        </values>-->
-<!--        <description>Job targets</description>-->
-<!--    </property>-->
-<!--    <property>-->
-<!--        <name>job_scrape_interval</name>-->
-<!--        <value>5s</value>-->
-<!--        <description>scrape targets from this job every scrape_interval.</description>-->
-<!--    </property>-->
+
 <configuration>
+    <property>
+        <name>scrape_interval</name>
+        <value>15s</value>
+        <description>Global, scrape targets every scrape_interval.</description>
+    </property>
     <property>
         <name>scrape_jobs</name>
         <values>
             <property>
-                <name>scrape_config1</name>
+                <name>scrape_self</name>
                 <values>
                     <property>
                             <name>job_name</name>
-                            <value>job</value>
+                            <value>prometheus</value>
                             <description>Job name</description>
                     </property>
                     <property>
@@ -84,14 +67,6 @@ global:
 # Here it's Prometheus itself.
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-  - job_name: 'prometheus'
-
-    # Override the global default and scrape targets from this job every 5 seconds.
-    scrape_interval: 5s
-
-    static_configs:
-      - targets: ['localhost:9090']
-
 <#list scrape_jobs as job>
   - job_name: '${job.name}'
 

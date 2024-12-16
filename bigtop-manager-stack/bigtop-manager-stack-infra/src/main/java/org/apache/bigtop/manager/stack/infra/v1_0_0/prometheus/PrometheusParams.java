@@ -43,10 +43,12 @@ public class PrometheusParams extends InfraParams {
 
     private List<Map<String, Object>> prometheusScrapeJobs;
     private String prometheusContent;
+    private String prometheusScrapeInterval;
 
     public PrometheusParams(CommandPayload commandPayload) {
         super(commandPayload);
         globalParamsMap.put("scrape_jobs", prometheusScrapeJobs);
+        globalParamsMap.put("scrape_interval", prometheusScrapeInterval);
     }
 
     public String dataDir() {
@@ -67,6 +69,7 @@ public class PrometheusParams extends InfraParams {
         List<Map<String, Object>> jobs = new ArrayList<>();
         Map<String, Object> configuration = LocalSettings.configurations(getServiceName(), "prometheus");
         prometheusContent = (String) configuration.get("content");
+        prometheusScrapeInterval = (String) configuration.get("scrape_interval");
         log.info(configuration.toString());
         @SuppressWarnings("unchecked")
         Map<String, Object> scrapeJobs = (Map<String, Object>) configuration.get("scrape_jobs");
