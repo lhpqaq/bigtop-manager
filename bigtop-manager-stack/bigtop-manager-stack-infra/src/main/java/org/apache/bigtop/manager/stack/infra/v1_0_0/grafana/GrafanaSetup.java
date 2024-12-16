@@ -35,7 +35,7 @@ public class GrafanaSetup {
         GrafanaParams grafanaParams = (GrafanaParams) params;
         String user = grafanaParams.user();
         String group = grafanaParams.group();
-        log.info(String.valueOf(grafanaParams));
+
         LinuxFileUtils.createDirectories(grafanaParams.dataDir(), user, group, Constants.PERMISSION_755, true);
 
         return ShellResult.success("Grafana Configure success!");

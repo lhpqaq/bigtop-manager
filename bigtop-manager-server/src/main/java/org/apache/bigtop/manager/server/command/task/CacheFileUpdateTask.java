@@ -43,8 +43,6 @@ import org.apache.bigtop.manager.server.model.dto.ServiceDTO;
 import org.apache.bigtop.manager.server.model.dto.StackDTO;
 import org.apache.bigtop.manager.server.utils.StackUtils;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +53,6 @@ import java.util.stream.Collectors;
 
 import static org.apache.bigtop.manager.common.constants.Constants.ALL_HOST_KEY;
 
-@Slf4j
 public class CacheFileUpdateTask extends AbstractTask {
 
     private ClusterDao clusterDao;
@@ -134,11 +131,8 @@ public class CacheFileUpdateTask extends AbstractTask {
         serviceConfigMap = new HashMap<>();
         for (ServiceConfigPO serviceConfigPO : serviceConfigPOList) {
             List<Map<String, Object>> properties = JsonUtils.readFromString(serviceConfigPO.getPropertiesJson());
-            log.info(properties.toString());
             Map<String, Object> kvMap = parseProperties(properties);
-            log.info(kvMap.toString());
             String kvString = JsonUtils.writeAsString(kvMap);
-            log.info(kvString);
 
             if (serviceConfigMap.containsKey(serviceConfigPO.getServiceName())) {
                 serviceConfigMap.get(serviceConfigPO.getServiceName()).put(serviceConfigPO.getName(), kvString);

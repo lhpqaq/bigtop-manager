@@ -68,23 +68,22 @@ public class PrometheusParams extends InfraParams {
     public Map<String, Object> scrapeConfigs() {
         List<Map<String, Object>> jobs = new ArrayList<>();
         Map<String, Object> configuration = LocalSettings.configurations(getServiceName(), "prometheus");
+
         prometheusContent = (String) configuration.get("content");
         prometheusScrapeInterval = (String) configuration.get("scrape_interval");
-        log.info(configuration.toString());
+
         @SuppressWarnings("unchecked")
         Map<String, Object> scrapeJobs = (Map<String, Object>) configuration.get("scrape_jobs");
-        log.info(scrapeJobs.toString());
         for (Map.Entry<String, Object> entry : scrapeJobs.entrySet()) {
             @SuppressWarnings("unchecked")
             Map<String, Object> scrapeJob = (Map<String, Object>) entry.getValue();
+
             Map<String, Object> job = new HashMap<>();
             job.put("name", scrapeJob.get("job_name"));
             job.put("targets", scrapeJob.get("job_targets"));
             job.put("scrape_interval", scrapeJob.get("job_scrape_interval"));
             jobs.add(job);
-            log.info(job.toString());
         }
-        log.info(jobs.toString());
         prometheusScrapeJobs = jobs;
         return configuration;
     }

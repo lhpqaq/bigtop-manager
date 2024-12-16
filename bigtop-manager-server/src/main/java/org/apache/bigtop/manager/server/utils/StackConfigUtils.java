@@ -26,14 +26,11 @@ import org.apache.bigtop.manager.server.stack.xml.ConfigurationXml;
 
 import org.apache.commons.lang3.StringUtils;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
 public class StackConfigUtils {
 
     /**
@@ -49,9 +46,6 @@ public class StackConfigUtils {
         List<PropertyDTO> propertyDTOList = new ArrayList<>();
         for (PropertyModel propertyModel : propertyModels) {
             PropertyDTO propertyDTO = getPropertyDTO(propertyModel);
-            if (propertyDTO.getValues() != null) {
-                log.info(propertyDTO.toString());
-            }
             propertyDTOList.add(propertyDTO);
         }
 

@@ -47,16 +47,4 @@ public interface ServiceConverter {
     ServiceVO fromPO2VO(ServicePO servicePO);
 
     List<ServiceVO> fromPO2VO(List<ServicePO> servicePOList);
-
-    //    @AfterMapping
-    //    default void afterMapping(@MappingTarget ServiceVO serviceVO, ServiceDTO serviceDTO) {
-    //        for (int i = 0; i < serviceDTO.getConfigs().size(); i++) {
-    //            for (int j = 0; j < serviceDTO.getConfigs().get(i).getProperties().size(); j++) {
-    //                if (serviceDTO.getConfigs().get(i).getProperties().get(j).getValues() != null) {
-    //                    System.out.println(serviceDTO.getConfigs().get(i).getProperties().get(j).getValues());
-    //                    System.out.println(serviceVO.getConfigs().get(i).getProperties().get(j).getValues());
-    //                }
-    //            }
-    //        }
-    //    }
 }

@@ -46,13 +46,6 @@ public class GrafanaParams extends InfraParams {
         return MessageFormat.format("{0}/data", serviceHome());
     }
 
-    @GlobalParams
-    public Map<String, Object> grafanaConfig() {
-        Map<String, Object> grafanaConfig = LocalSettings.configurations(getServiceName(), "grafana");
-        log.info(grafanaConfig.toString());
-        return grafanaConfig;
-    }
-
     @Override
     public String getServiceName() {
         return "grafana";

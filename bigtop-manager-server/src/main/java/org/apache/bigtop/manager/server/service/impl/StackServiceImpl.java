@@ -47,13 +47,6 @@ public class StackServiceImpl implements StackService {
             List<ServiceDTO> serviceDTOList = entry.getValue();
             for (ServiceDTO serviceDTO : serviceDTOList) {
                 serviceDTO.setConfigs(StackUtils.SERVICE_CONFIG_MAP.get(serviceDTO.getName()));
-                //                if (serviceDTO.getName().equals("grafana")) {
-                //                    List<ServiceConfigDTO> serviceConfigDTOList =
-                // StackUtils.SERVICE_CONFIG_MAP.get(serviceDTO.getName());
-                //
-                // log.info(String.valueOf(PropertyConverter.INSTANCE.fromDTO2VO(serviceConfigDTOList.get(0).getProperties())));
-                //                    log.info(ServiceConverter.INSTANCE.fromDTO2VO(serviceDTO).toString());
-                //                }
             }
 
             StackVO stackVO = StackConverter.INSTANCE.fromDTO2VO(stackDTO);
