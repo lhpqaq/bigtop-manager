@@ -21,6 +21,7 @@ package org.apache.bigtop.manager.server.model.req;
 import lombok.Data;
 
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 
 @Data
 public class PropertyReq {
@@ -35,4 +36,6 @@ public class PropertyReq {
     private String desc;
 
     private AttrsReq attrs;
+
+    private List<PropertyReq> values;
 }

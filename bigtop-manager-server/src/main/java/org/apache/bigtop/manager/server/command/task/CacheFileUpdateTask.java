@@ -43,6 +43,8 @@ import org.apache.bigtop.manager.server.model.dto.ServiceDTO;
 import org.apache.bigtop.manager.server.model.dto.StackDTO;
 import org.apache.bigtop.manager.server.utils.StackUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,6 +55,7 @@ import java.util.stream.Collectors;
 
 import static org.apache.bigtop.manager.common.constants.Constants.ALL_HOST_KEY;
 
+@Slf4j
 public class CacheFileUpdateTask extends AbstractTask {
 
     private ClusterDao clusterDao;
@@ -98,6 +101,18 @@ public class CacheFileUpdateTask extends AbstractTask {
         }
     }
 
+    private Map<String, Object> parseProperties(List<Map<String, Object>> properties) {
+        return properties.stream().collect(Collectors.toMap(property -> (String) property.get("name"), property -> {
+            if (property.containsKey("values")) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> nestedProperties = (List<Map<String, Object>>) property.get("values");
+                return parseProperties(nestedProperties);
+            } else {
+                return property.get("value");
+            }
+        }));
+    }
+
     @SuppressWarnings("unchecked")
     private void genFullCaches() {
         Long clusterId = taskContext.getClusterId();
@@ -119,10 +134,11 @@ public class CacheFileUpdateTask extends AbstractTask {
         serviceConfigMap = new HashMap<>();
         for (ServiceConfigPO serviceConfigPO : serviceConfigPOList) {
             List<Map<String, Object>> properties = JsonUtils.readFromString(serviceConfigPO.getPropertiesJson());
-            Map<String, String> kvMap = properties.stream()
-                    .collect(Collectors.toMap(
-                            property -> (String) property.get("name"), property -> (String) property.get("value")));
+            log.info(properties.toString());
+            Map<String, Object> kvMap = parseProperties(properties);
+            log.info(kvMap.toString());
             String kvString = JsonUtils.writeAsString(kvMap);
+            log.info(kvString);
 
             if (serviceConfigMap.containsKey(serviceConfigPO.getServiceName())) {
                 serviceConfigMap.get(serviceConfigPO.getServiceName()).put(serviceConfigPO.getName(), kvString);
