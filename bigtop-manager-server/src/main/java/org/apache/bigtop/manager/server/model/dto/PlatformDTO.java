@@ -25,5 +25,8 @@ import java.util.Map;
 @Data
 public class PlatformDTO {
     private Long platformId;
+
+    private String baseUrl;
+
     private Map<String, String> authCredentials;
 }

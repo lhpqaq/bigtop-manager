@@ -25,9 +25,13 @@ import java.util.List;
 
 @Data
 public class PlatformReq {
-    @NotEmpty
     private Long platformId;
 
-    @NotEmpty
+    private String name;
+
+    private String baseUrl;
+
+    private String supportModels;
+
     private List<AuthCredentialReq> authCredentials;
 }

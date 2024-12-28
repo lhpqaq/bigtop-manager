@@ -38,11 +38,17 @@ public class PlatformPO extends BasePO implements Serializable {
     @Column(name = "name", nullable = false, length = 255)
     private String name;
 
+    @Column(name = "type", nullable = false, length = 255)
+    private String type;
+
     @Column(name = "credential", nullable = false)
     private String credential;
 
     @Column(name = "support_models", length = 255)
     private String supportModels;
+
+    @Column(name = "base_url", length = 255)
+    private String baseUrl;
 
     @Column(name = "desc")
     private String desc;
