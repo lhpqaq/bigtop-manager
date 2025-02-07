@@ -24,6 +24,7 @@ import org.apache.bigtop.manager.ai.core.enums.PlatformType;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import reactor.core.publisher.Flux;
@@ -79,6 +80,8 @@ public interface AIAssistant {
         Builder withToolProvider(ToolProvider toolProvider);
 
         Builder withSystemPrompt(String systemPrompt);
+
+        Builder withContentRetriever(ContentRetriever contentRetriever);
 
         AIAssistant build();
 

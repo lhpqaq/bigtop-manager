@@ -18,10 +18,29 @@
  */
 package org.apache.bigtop.manager.ai.rag;
 
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.store.embedding.EmbeddingStore;
-import dev.langchain4j.store.embedding.chroma.ChromaEmbeddingStore;
+import org.apache.bigtop.manager.ai.rag.embedding.store.EmbeddingStoreFactory;
 
-public class RAG {
-ChromaEmbeddingStore a = ChromaEmbeddingStore.builder().baseUrl("http://localhost:8080").build();
+import org.springframework.stereotype.Component;
+
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
+
+import jakarta.annotation.Resource;
+
+@Component
+public class RAGFactory {
+    @Resource
+    private EmbeddingStoreFactory embeddingStoreFactory;
+
+    public ContentRetriever createContentRetriever() {
+        EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+        return EmbeddingStoreContentRetriever.builder()
+                .embeddingStore(embeddingStoreFactory.create())
+                .embeddingModel(embeddingModel)
+                .maxResults(5)
+                .minScore(0.75)
+                .build();
+    }
 }

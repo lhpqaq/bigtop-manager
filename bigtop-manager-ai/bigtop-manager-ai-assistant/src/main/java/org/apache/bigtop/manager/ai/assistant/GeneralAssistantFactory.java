@@ -31,6 +31,7 @@ import org.apache.bigtop.manager.ai.dashscope.DashScopeAssistant;
 import org.apache.bigtop.manager.ai.deepseek.DeepSeekAssistant;
 import org.apache.bigtop.manager.ai.openai.OpenAIAssistant;
 import org.apache.bigtop.manager.ai.qianfan.QianFanAssistant;
+import org.apache.bigtop.manager.ai.rag.RAGFactory;
 
 import org.springframework.stereotype.Component;
 
@@ -48,6 +49,9 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
 
     @Resource
     private ChatMemoryStoreProvider chatMemoryStoreProvider;
+
+    @Resource
+    private RAGFactory ragFactory;
 
     private void configureSystemPrompt(AIAssistant.Builder builder, SystemPrompt systemPrompt, String locale) {
         List<String> systemPrompts = new ArrayList<>();
@@ -83,7 +87,8 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
         builder.id(id)
                 .memoryStore(chatMemoryStoreProvider.createPersistentChatMemoryStore())
                 .withConfig(generalAssistantConfig)
-                .withToolProvider(toolProvider);
+                .withToolProvider(toolProvider)
+                .withContentRetriever(ragFactory.createContentRetriever());
 
         configureSystemPrompt(builder, systemPrompt, generalAssistantConfig.getLanguage());
 
@@ -99,7 +104,8 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
         builder.id(null)
                 .memoryStore(chatMemoryStoreProvider.createInMemoryChatMemoryStore())
                 .withConfig(generalAssistantConfig)
-                .withToolProvider(toolProvider);
+                .withToolProvider(toolProvider)
+                .withContentRetriever(ragFactory.createContentRetriever());
 
         return builder.build();
     }

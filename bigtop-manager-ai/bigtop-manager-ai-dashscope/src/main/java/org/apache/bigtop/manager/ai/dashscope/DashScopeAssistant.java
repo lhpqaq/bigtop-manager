@@ -53,6 +53,7 @@ public class DashScopeAssistant extends AbstractAIAssistant {
                     .streamingChatLanguageModel(getStreamingChatLanguageModel())
                     .chatMemory(getChatMemory())
                     .toolProvider(toolProvider)
+                    .contentRetriever(contentRetriever)
                     .systemMessageProvider(threadId -> {
                         if (threadId != null) {
                             return systemPrompt;
