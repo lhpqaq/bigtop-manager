@@ -23,7 +23,7 @@ import org.apache.bigtop.manager.ai.core.factory.AIAssistant;
 
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
-import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import reactor.core.publisher.Flux;
@@ -66,7 +66,7 @@ public abstract class AbstractAIAssistant implements AIAssistant {
 
         protected ToolProvider toolProvider;
         protected String systemPrompt;
-        protected ContentRetriever contentRetriever;
+        protected RetrievalAugmentor retrievalAugmentor;
 
         public Builder() {}
 
@@ -95,8 +95,8 @@ public abstract class AbstractAIAssistant implements AIAssistant {
             return this;
         }
 
-        public Builder withContentRetriever(ContentRetriever contentRetriever) {
-            this.contentRetriever = contentRetriever;
+        public Builder withRetrievalAugmentor(RetrievalAugmentor retrievalAugmentor) {
+            this.retrievalAugmentor = retrievalAugmentor;
             return this;
         }
 

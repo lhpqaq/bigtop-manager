@@ -50,7 +50,7 @@
         <micrometer.version>1.12.4</micrometer.version>
         <jdbc.dm.version>8.1.2.192</jdbc.dm.version>
         <sshd.version>2.14.0</sshd.version>
-        <langchain4j.version>0.35.0</langchain4j.version>
+        <langchain4j.version>0.36.0</langchain4j.version>
         <mybatis-spring-boot-starter.version>3.0.3</mybatis-spring-boot-starter.version>
         <pagehelper-spring-boot-starter.version>2.1.0</pagehelper-spring-boot-starter.version>
     </properties>
@@ -291,6 +291,11 @@
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-web-search-engine-google-custom</artifactId>
                 <version>${langchain4j.version}</version>
             </dependency>
         </dependencies>

@@ -88,7 +88,7 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
                 .memoryStore(chatMemoryStoreProvider.createPersistentChatMemoryStore())
                 .withConfig(generalAssistantConfig)
                 .withToolProvider(toolProvider)
-                .withContentRetriever(ragFactory.createContentRetriever());
+                .withRetrievalAugmentor(ragFactory.createRetrievalAugmentor());
 
         configureSystemPrompt(builder, systemPrompt, generalAssistantConfig.getLanguage());
 
@@ -105,7 +105,7 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
                 .memoryStore(chatMemoryStoreProvider.createInMemoryChatMemoryStore())
                 .withConfig(generalAssistantConfig)
                 .withToolProvider(toolProvider)
-                .withContentRetriever(ragFactory.createContentRetriever());
+                .withRetrievalAugmentor(ragFactory.createRetrievalAugmentor());
 
         return builder.build();
     }
