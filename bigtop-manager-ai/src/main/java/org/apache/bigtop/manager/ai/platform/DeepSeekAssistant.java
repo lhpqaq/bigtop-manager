@@ -79,22 +79,8 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
 
         @Override
         public StreamingChatModel getStreamingChatModel() {
-            String model = config.getModel();
-            Assert.notNull(model, "model must not be null");
-            String apiKey = config.getCredentials().get("apiKey");
-            Assert.notNull(apiKey, "apiKey must not be null");
-            
-            OpenAiApi openAiApi = OpenAiApi.builder()
-                    .baseUrl(BASE_URL)
-                    .apiKey(apiKey)
-                    .build();
-            OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .model(model)
-                    .build();
-            return org.springframework.ai.openai.OpenAiStreamingChatModel.builder()
-                    .openAiApi(openAiApi)
-                    .defaultOptions(options)
-                    .build();
+            // In Spring AI, OpenAiChatModel handles both sync and streaming
+            return getChatModel();
         }
 
         public AIAssistant build() {
@@ -118,7 +104,7 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
                     messages.add(newUserMessage);
                     
                     Prompt prompt = new Prompt(messages);
-                    String response = chatModel.call(prompt).getResult().getOutput().getContent();
+                    String response = chatModel.call(prompt).getResult().getOutput().getText();
                     
                     // Save to memory
                     memory.add(convId, List.of(newUserMessage, new org.springframework.ai.chat.messages.AssistantMessage(response)));
@@ -145,7 +131,7 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
                     StringBuilder responseBuilder = new StringBuilder();
                     return streamingChatModel.stream(prompt)
                             .map(chatResponse -> {
-                                String content = chatResponse.getResult().getOutput().getContent();
+                                String content = chatResponse.getResult().getOutput().getText();
                                 if (content != null) {
                                     responseBuilder.append(content);
                                 }

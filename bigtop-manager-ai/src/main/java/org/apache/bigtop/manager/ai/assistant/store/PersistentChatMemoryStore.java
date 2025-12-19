@@ -68,18 +68,18 @@ public class PersistentChatMemoryStore implements ChatMemoryRepository {
         if (message.getMessageType() == org.springframework.ai.chat.messages.MessageType.ASSISTANT) {
             chatMessagePO.setSender(MessageType.AI.getValue());
             AssistantMessage assistantMessage = (AssistantMessage) message;
-            if (assistantMessage.getContent() == null) {
+            if (assistantMessage.getText() == null) {
                 return null;
             }
-            chatMessagePO.setMessage(assistantMessage.getContent());
+            chatMessagePO.setMessage(assistantMessage.getText());
         } else if (message.getMessageType() == org.springframework.ai.chat.messages.MessageType.USER) {
             chatMessagePO.setSender(MessageType.USER.getValue());
             UserMessage userMessage = (UserMessage) message;
-            chatMessagePO.setMessage(userMessage.getContent());
+            chatMessagePO.setMessage(userMessage.getText());
         } else if (message.getMessageType() == org.springframework.ai.chat.messages.MessageType.SYSTEM) {
             chatMessagePO.setSender(MessageType.SYSTEM.getValue());
             SystemMessage systemMessage = (SystemMessage) message;
-            chatMessagePO.setMessage(systemMessage.getContent());
+            chatMessagePO.setMessage(systemMessage.getText());
         } else {
             return null;
         }

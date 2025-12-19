@@ -79,11 +79,11 @@ class PersistentChatMemoryStoreTest {
         chatMessagePOS.add(messagePO3);
         when(chatMessageDao.findAllByThreadId(threadId)).thenReturn(chatMessagePOS);
 
-        List<Message> result = persistentChatMemoryStore.get(String.valueOf(threadId), -1);
+        List<Message> result = persistentChatMemoryStore.findByConversationId(String.valueOf(threadId));
 
         assertEquals(2, result.size());
         assertTrue(result.get(0) instanceof AssistantMessage);
-        assertEquals("Hello from AI", ((AssistantMessage) result.get(0)).getContent());
+        assertEquals("Hello from AI", ((AssistantMessage) result.get(0)).getText());
     }
 
     @Test
@@ -96,13 +96,13 @@ class PersistentChatMemoryStoreTest {
 
         List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage("Hello System"));
-        persistentChatMemoryStore.add(String.valueOf(threadId), messages);
+        persistentChatMemoryStore.saveAll(String.valueOf(threadId), messages);
         messages.clear();
         messages.add(new UserMessage("Hello User"));
-        persistentChatMemoryStore.add(String.valueOf(threadId), messages);
+        persistentChatMemoryStore.saveAll(String.valueOf(threadId), messages);
         messages.clear();
         messages.add(new AssistantMessage("Hello AI"));
-        persistentChatMemoryStore.add(String.valueOf(threadId), messages);
+        persistentChatMemoryStore.saveAll(String.valueOf(threadId), messages);
     }
 
     @Test
@@ -116,7 +116,7 @@ class PersistentChatMemoryStoreTest {
 
         when(chatMessageDao.findAllByThreadId(threadId)).thenReturn(chatMessagePOS);
 
-        persistentChatMemoryStore.clear(String.valueOf(threadId));
+        persistentChatMemoryStore.deleteByConversationId(String.valueOf(threadId));
 
         Assertions.assertTrue(chatMessagePOS.get(0).getIsDeleted());
     }
@@ -125,12 +125,16 @@ class PersistentChatMemoryStoreTest {
     void testSystemMessage() {
         Long threadId = 1L;
 
-        when(chatMessageDao.findAllByThreadId(threadId)).thenReturn(new ArrayList<>());
-        persistentChatMemoryStore.add(String.valueOf(threadId), List.of(new SystemMessage("Hello from System")));
-        List<Message> result = persistentChatMemoryStore.get(String.valueOf(threadId), -1);
+        ChatMessagePO systemMessagePO = new ChatMessagePO();
+        systemMessagePO.setSender("system");
+        systemMessagePO.setMessage("Hello from System");
+
+        when(chatMessageDao.findAllByThreadId(threadId)).thenReturn(List.of(systemMessagePO));
+        
+        List<Message> result = persistentChatMemoryStore.findByConversationId(String.valueOf(threadId));
 
         assertEquals(1, result.size());
         assertTrue(result.get(0) instanceof SystemMessage);
-        assertEquals("Hello from System", ((SystemMessage) result.get(0)).getContent());
+        assertEquals("Hello from System", ((SystemMessage) result.get(0)).getText());
     }
 }
