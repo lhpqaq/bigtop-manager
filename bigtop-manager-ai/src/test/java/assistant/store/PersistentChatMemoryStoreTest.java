@@ -31,18 +31,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.ChatMessageType;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,12 +52,12 @@ class PersistentChatMemoryStoreTest {
     @Mock
     private ChatMessageDao chatMessageDao;
 
-    @InjectMocks
     private PersistentChatMemoryStore persistentChatMemoryStore;
 
     @BeforeEach
     void setUp() {
-        persistentChatMemoryStore = new PersistentChatMemoryStore(chatThreadDao, chatMessageDao);
+        Long threadId = 1L;
+        persistentChatMemoryStore = new PersistentChatMemoryStore(threadId, chatThreadDao, chatMessageDao);
     }
 
     @Test
@@ -81,37 +79,34 @@ class PersistentChatMemoryStoreTest {
         chatMessagePOS.add(messagePO3);
         when(chatMessageDao.findAllByThreadId(threadId)).thenReturn(chatMessagePOS);
 
-        List<ChatMessage> result = persistentChatMemoryStore.getMessages(threadId);
+        List<Message> result = persistentChatMemoryStore.get(String.valueOf(threadId), -1);
 
         assertEquals(2, result.size());
-        assertTrue(result.get(0) instanceof AiMessage);
-        assertEquals("Hello from AI", ((AiMessage) result.get(0)).text());
+        assertTrue(result.get(0) instanceof AssistantMessage);
+        assertEquals("Hello from AI", ((AssistantMessage) result.get(0)).getContent());
     }
 
     @Test
-    void testUpdateMessages() {
+    void testAddMessages() {
         Long threadId = 1L;
         ChatThreadPO chatThreadPO = new ChatThreadPO();
         chatThreadPO.setUserId(123L);
 
         when(chatThreadDao.findById(threadId)).thenReturn(chatThreadPO);
 
-        List<ChatMessage> messages = new ArrayList<>();
+        List<Message> messages = new ArrayList<>();
         messages.add(new SystemMessage("Hello System"));
-        persistentChatMemoryStore.updateMessages(threadId, messages);
+        persistentChatMemoryStore.add(String.valueOf(threadId), messages);
+        messages.clear();
         messages.add(new UserMessage("Hello User"));
-        persistentChatMemoryStore.updateMessages(threadId, messages);
-        messages.add(new AiMessage("Hello AI"));
-        persistentChatMemoryStore.updateMessages(threadId, messages);
-
-        ChatMessage mockMessage = mock(ChatMessage.class);
-        when(mockMessage.type()).thenReturn(ChatMessageType.TOOL_EXECUTION_RESULT);
-        messages.add(mockMessage);
-        persistentChatMemoryStore.updateMessages(threadId, messages);
+        persistentChatMemoryStore.add(String.valueOf(threadId), messages);
+        messages.clear();
+        messages.add(new AssistantMessage("Hello AI"));
+        persistentChatMemoryStore.add(String.valueOf(threadId), messages);
     }
 
     @Test
-    void testDeleteMessages() {
+    void testClearMessages() {
         Long threadId = 1L;
         List<ChatMessagePO> chatMessagePOS = new ArrayList<>();
 
@@ -121,7 +116,7 @@ class PersistentChatMemoryStoreTest {
 
         when(chatMessageDao.findAllByThreadId(threadId)).thenReturn(chatMessagePOS);
 
-        persistentChatMemoryStore.deleteMessages(threadId);
+        persistentChatMemoryStore.clear(String.valueOf(threadId));
 
         Assertions.assertTrue(chatMessagePOS.get(0).getIsDeleted());
     }
@@ -131,11 +126,11 @@ class PersistentChatMemoryStoreTest {
         Long threadId = 1L;
 
         when(chatMessageDao.findAllByThreadId(threadId)).thenReturn(new ArrayList<>());
-        persistentChatMemoryStore.updateMessages(threadId, List.of(new SystemMessage("Hello from System")));
-        List<ChatMessage> result = persistentChatMemoryStore.getMessages(threadId);
+        persistentChatMemoryStore.add(String.valueOf(threadId), List.of(new SystemMessage("Hello from System")));
+        List<Message> result = persistentChatMemoryStore.get(String.valueOf(threadId), -1);
 
         assertEquals(1, result.size());
         assertTrue(result.get(0) instanceof SystemMessage);
-        assertEquals("Hello from System", ((SystemMessage) result.get(0)).text());
+        assertEquals("Hello from System", ((SystemMessage) result.get(0)).getContent());
     }
 }
