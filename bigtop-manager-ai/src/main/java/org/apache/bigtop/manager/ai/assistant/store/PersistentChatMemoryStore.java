@@ -102,19 +102,13 @@ public class PersistentChatMemoryStore implements ChatMemoryRepository {
     }
 
     @Override
-    public void add(String conversationId, List<Message> messages) {
-        for (Message message : messages) {
-            ChatMessagePO chatMessagePO = convertToChatMessagePO(message, this.conversationId);
-            if (chatMessagePO == null) {
-                messagesInMemory.add(message);
-                continue;
-            }
-            chatMessageDao.save(chatMessagePO);
-        }
+    public List<String> findConversationIds() {
+        // Return the current conversation ID as a list
+        return List.of(String.valueOf(conversationId));
     }
 
     @Override
-    public List<Message> get(String conversationId, int lastN) {
+    public List<Message> findByConversationId(String conversationId) {
         List<ChatMessagePO> chatMessages = chatMessageDao.findAllByThreadId(this.conversationId);
         List<Message> allChatMessages = new ArrayList<>();
         if (!chatMessages.isEmpty()) {
@@ -126,18 +120,23 @@ public class PersistentChatMemoryStore implements ChatMemoryRepository {
 
         allChatMessages.addAll(messagesInMemory);
 
-        List<Message> sorted = sortMessages(allChatMessages);
-        
-        // Return last N messages if lastN is specified
-        if (lastN > 0 && sorted.size() > lastN) {
-            return sorted.subList(sorted.size() - lastN, sorted.size());
-        }
-        
-        return sorted;
+        return sortMessages(allChatMessages);
     }
 
     @Override
-    public void clear(String conversationId) {
+    public void saveAll(String conversationId, List<Message> messages) {
+        for (Message message : messages) {
+            ChatMessagePO chatMessagePO = convertToChatMessagePO(message, this.conversationId);
+            if (chatMessagePO == null) {
+                messagesInMemory.add(message);
+                continue;
+            }
+            chatMessageDao.save(chatMessagePO);
+        }
+    }
+
+    @Override
+    public void deleteByConversationId(String conversationId) {
         List<ChatMessagePO> chatMessagePOS = chatMessageDao.findAllByThreadId(this.conversationId);
         chatMessagePOS.forEach(chatMessage -> chatMessage.setIsDeleted(true));
         chatMessageDao.partialUpdateByIds(chatMessagePOS);

@@ -64,11 +64,17 @@ public class OpenAIAssistant extends AbstractAIAssistant {
             String apiKey = config.getCredentials().get("apiKey");
             Assert.notNull(apiKey, "apiKey must not be null");
             
-            OpenAiApi openAiApi = new OpenAiApi(BASE_URL, apiKey);
-            OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .withModel(model)
+            OpenAiApi openAiApi = OpenAiApi.builder()
+                    .baseUrl(BASE_URL)
+                    .apiKey(apiKey)
                     .build();
-            return new OpenAiChatModel(openAiApi, options);
+            OpenAiChatOptions options = OpenAiChatOptions.builder()
+                    .model(model)
+                    .build();
+            return OpenAiChatModel.builder()
+                    .openAiApi(openAiApi)
+                    .defaultOptions(options)
+                    .build();
         }
 
         @Override
@@ -78,11 +84,17 @@ public class OpenAIAssistant extends AbstractAIAssistant {
             String apiKey = config.getCredentials().get("apiKey");
             Assert.notNull(apiKey, "apiKey must not be null");
             
-            OpenAiApi openAiApi = new OpenAiApi(BASE_URL, apiKey);
-            OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .withModel(model)
+            OpenAiApi openAiApi = OpenAiApi.builder()
+                    .baseUrl(BASE_URL)
+                    .apiKey(apiKey)
                     .build();
-            return new org.springframework.ai.openai.OpenAiStreamingChatModel(openAiApi, options);
+            OpenAiChatOptions options = OpenAiChatOptions.builder()
+                    .model(model)
+                    .build();
+            return org.springframework.ai.openai.OpenAiStreamingChatModel.builder()
+                    .openAiApi(openAiApi)
+                    .defaultOptions(options)
+                    .build();
         }
 
         public AIAssistant build() {
@@ -99,7 +111,7 @@ public class OpenAIAssistant extends AbstractAIAssistant {
                     }
                     // Add conversation history
                     String convId = String.valueOf(id);
-                    List<Message> history = memory.get(convId, MEMORY_LEN);
+                    List<Message> history = memory.get(convId);
                     messages.addAll(history);
                     // Add new user message
                     UserMessage newUserMessage = new UserMessage(userMessage);
@@ -122,7 +134,7 @@ public class OpenAIAssistant extends AbstractAIAssistant {
                     }
                     // Add conversation history
                     String convId = String.valueOf(id);
-                    List<Message> history = memory.get(convId, MEMORY_LEN);
+                    List<Message> history = memory.get(convId);
                     messages.addAll(history);
                     // Add new user message
                     UserMessage newUserMessage = new UserMessage(userMessage);

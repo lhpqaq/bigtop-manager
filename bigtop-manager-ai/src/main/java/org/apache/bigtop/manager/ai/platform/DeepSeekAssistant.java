@@ -64,11 +64,17 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
             String apiKey = config.getCredentials().get("apiKey");
             Assert.notNull(apiKey, "apiKey must not be null");
             
-            OpenAiApi openAiApi = new OpenAiApi(BASE_URL, apiKey);
-            OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .withModel(model)
+            OpenAiApi openAiApi = OpenAiApi.builder()
+                    .baseUrl(BASE_URL)
+                    .apiKey(apiKey)
                     .build();
-            return new OpenAiChatModel(openAiApi, options);
+            OpenAiChatOptions options = OpenAiChatOptions.builder()
+                    .model(model)
+                    .build();
+            return OpenAiChatModel.builder()
+                    .openAiApi(openAiApi)
+                    .defaultOptions(options)
+                    .build();
         }
 
         @Override
@@ -78,11 +84,17 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
             String apiKey = config.getCredentials().get("apiKey");
             Assert.notNull(apiKey, "apiKey must not be null");
             
-            OpenAiApi openAiApi = new OpenAiApi(BASE_URL, apiKey);
-            OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .withModel(model)
+            OpenAiApi openAiApi = OpenAiApi.builder()
+                    .baseUrl(BASE_URL)
+                    .apiKey(apiKey)
                     .build();
-            return new org.springframework.ai.openai.OpenAiStreamingChatModel(openAiApi, options);
+            OpenAiChatOptions options = OpenAiChatOptions.builder()
+                    .model(model)
+                    .build();
+            return org.springframework.ai.openai.OpenAiStreamingChatModel.builder()
+                    .openAiApi(openAiApi)
+                    .defaultOptions(options)
+                    .build();
         }
 
         public AIAssistant build() {
@@ -98,7 +110,9 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
                         messages.add(new SystemMessage(systemPrompt));
                     }
                     // Add conversation history
-                    messages.addAll(memory.get(String.valueOf(id), MEMORY_LEN));
+                    String convId = String.valueOf(id);
+                    List<Message> history = memory.get(convId);
+                    messages.addAll(history);
                     // Add new user message
                     UserMessage newUserMessage = new UserMessage(userMessage);
                     messages.add(newUserMessage);
@@ -107,7 +121,7 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
                     String response = chatModel.call(prompt).getResult().getOutput().getContent();
                     
                     // Save to memory
-                    memory.add(String.valueOf(id), List.of(newUserMessage, new org.springframework.ai.chat.messages.AssistantMessage(response)));
+                    memory.add(convId, List.of(newUserMessage, new org.springframework.ai.chat.messages.AssistantMessage(response)));
                     
                     return response;
                 }
@@ -119,7 +133,9 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
                         messages.add(new SystemMessage(systemPrompt));
                     }
                     // Add conversation history
-                    messages.addAll(memory.get(String.valueOf(id), MEMORY_LEN));
+                    String convId = String.valueOf(id);
+                    List<Message> history = memory.get(convId);
+                    messages.addAll(history);
                     // Add new user message
                     UserMessage newUserMessage = new UserMessage(userMessage);
                     messages.add(newUserMessage);
@@ -137,7 +153,7 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
                             })
                             .doOnComplete(() -> {
                                 // Save to memory when streaming completes
-                                memory.add(String.valueOf(id), List.of(newUserMessage, new org.springframework.ai.chat.messages.AssistantMessage(responseBuilder.toString())));
+                                memory.add(convId, List.of(newUserMessage, new org.springframework.ai.chat.messages.AssistantMessage(responseBuilder.toString())));
                             });
                 }
             };
