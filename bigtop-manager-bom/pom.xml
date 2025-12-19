@@ -52,6 +52,8 @@
         <micrometer.version>1.12.4</micrometer.version>
         <jdbc.dm.version>8.1.2.192</jdbc.dm.version>
         <sshd.version>2.15.0</sshd.version>
+        <langchain4j.version>1.0.1</langchain4j.version>
+        <jetbrains-annotations.version>24.0.1</jetbrains-annotations.version>
 
         <mybatis-spring-boot-starter.version>3.0.3</mybatis-spring-boot-starter.version>
         <pagehelper-spring-boot-starter.version>2.1.0</pagehelper-spring-boot-starter.version>
@@ -277,6 +279,19 @@
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
                 <version>${spring-ai.version}</version>
+            </dependency>
+
+            <!-- Keep langchain4j for server module tool support -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${jetbrains-annotations.version}</version>
             </dependency>
 
             <dependency>
