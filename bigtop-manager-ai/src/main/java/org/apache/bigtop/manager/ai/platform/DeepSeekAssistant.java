@@ -11,9 +11,9 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.StreamingChatModel;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.deepseek.DeepSeekChatModel;
-import org.springframework.ai.deepseek.DeepSeekChatOptions;
-import org.springframework.ai.deepseek.api.DeepSeekApi;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeepSeekAssistant extends AbstractAIAssistant {
+
+    private static final String BASE_URL = "https://api.deepseek.com";
 
     public DeepSeekAssistant(Object memoryId, ChatMemory chatMemory, AIAssistant.Service aiServices) {
         super(memoryId, chatMemory, aiServices);
@@ -45,18 +47,19 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
             String apiKey = config.getCredentials().get("apiKey");
             Assert.notNull(apiKey, "apiKey must not be null");
 
-            DeepSeekApi deepSeekApi =
-                    DeepSeekApi.builder().apiKey(apiKey).build();
-            DeepSeekChatOptions options = DeepSeekChatOptions.builder().model(model).build();
-            return DeepSeekChatModel.builder()
-                    .deepSeekApi(deepSeekApi)
+            // DeepSeek API is OpenAI-compatible
+            OpenAiApi openAiApi =
+                    OpenAiApi.builder().baseUrl(BASE_URL).apiKey(apiKey).build();
+            OpenAiChatOptions options = OpenAiChatOptions.builder().model(model).build();
+            return OpenAiChatModel.builder()
+                    .openAiApi(openAiApi)
                     .defaultOptions(options)
                     .build();
         }
 
         @Override
         public StreamingChatModel getStreamingChatModel() {
-            // DeepSeekChatModel handles both sync and streaming
+            // OpenAiChatModel handles both sync and streaming
             return getChatModel();
         }
 

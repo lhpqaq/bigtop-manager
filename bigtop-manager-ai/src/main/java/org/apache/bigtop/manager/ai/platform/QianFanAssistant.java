@@ -20,10 +20,21 @@ import org.springframework.web.client.RestClient;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * QianFan (Baidu) AI Assistant implementation.
+ * 
+ * <p>Baidu QianFan requires OAuth2 authentication with both apiKey and secretKey.
+ * This implementation automatically exchanges credentials for an access token.
+ * 
+ * <p>Required credentials:
+ * <ul>
+ *   <li>apiKey: Your Baidu QianFan API Key</li>
+ *   <li>secretKey: Your Baidu QianFan Secret Key</li>
+ * </ul>
+ */
 public class QianFanAssistant extends AbstractAIAssistant {
 
     private static final String BASE_URL = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat";
@@ -44,6 +55,13 @@ public class QianFanAssistant extends AbstractAIAssistant {
 
     public static class Builder extends AbstractAIAssistant.Builder {
 
+        /**
+         * Exchanges apiKey and secretKey for an OAuth2 access token.
+         * 
+         * @param apiKey Baidu QianFan API Key
+         * @param secretKey Baidu QianFan Secret Key
+         * @return Access token for API requests
+         */
         private String getAccessToken(String apiKey, String secretKey) {
             RestClient restClient = RestClient.create();
             Map<String, Object> response = restClient.get()
@@ -67,10 +85,10 @@ public class QianFanAssistant extends AbstractAIAssistant {
             String secretKey = config.getCredentials().get("secretKey");
             Assert.notNull(secretKey, "secretKey must not be null");
 
-            // Get access token from QianFan using apiKey and secretKey
+            // Exchange credentials for access token
             String accessToken = getAccessToken(apiKey, secretKey);
             
-            // QianFan uses OpenAI-compatible API with access token
+            // Build QianFan-compatible endpoint with access token
             String qianfanUrl = BASE_URL + "/" + model + "?access_token=" + accessToken;
             OpenAiApi openAiApi =
                     OpenAiApi.builder().baseUrl(qianfanUrl).apiKey("dummy").build();
