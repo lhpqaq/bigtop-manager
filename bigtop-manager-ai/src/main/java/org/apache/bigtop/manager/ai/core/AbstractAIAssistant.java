@@ -143,7 +143,8 @@ public abstract class AbstractAIAssistant implements AIAssistant {
 
         protected void emitToolExecutionEvent(String executionId, String toolName, String status, String payload) {
             if (toolExecutionListener != null) {
-                toolExecutionListener.accept(new AIAssistant.ToolExecutionEvent(executionId, toolName, status, payload));
+                toolExecutionListener.accept(
+                        new AIAssistant.ToolExecutionEvent(executionId, toolName, status, payload));
             }
         }
 

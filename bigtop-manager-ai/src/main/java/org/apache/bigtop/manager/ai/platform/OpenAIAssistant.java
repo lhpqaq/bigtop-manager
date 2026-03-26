@@ -114,7 +114,8 @@ public class OpenAIAssistant extends AbstractAIAssistant {
             return getChatModel();
         }
 
-        private ToolCallback[] buildObservedToolCallbacks(List<io.modelcontextprotocol.client.McpAsyncClient> mcpClients) {
+        private ToolCallback[] buildObservedToolCallbacks(
+                List<io.modelcontextprotocol.client.McpAsyncClient> mcpClients) {
             ToolCallback[] callbacks = new AsyncMcpToolCallbackProvider(mcpClients).getToolCallbacks();
             ToolCallback[] observedCallbacks = new ToolCallback[callbacks.length];
             for (int i = 0; i < callbacks.length; i++) {
