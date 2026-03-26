@@ -45,7 +45,6 @@ import org.apache.bigtop.manager.server.model.vo.ChatMessageVO;
 import org.apache.bigtop.manager.server.model.vo.ChatThreadVO;
 import org.apache.bigtop.manager.server.model.vo.TalkVO;
 import org.apache.bigtop.manager.server.service.ChatbotService;
-import org.apache.bigtop.manager.server.tools.provider.AIServiceToolsProvider;
 
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -73,9 +72,6 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     @Resource
     private ChatMessageDao chatMessageDao;
-
-    @Resource
-    private AIServiceToolsProvider aiServiceToolsProvider;
 
     @Resource
     private AIAssistantFactory aiAssistantFactory;
@@ -235,8 +231,7 @@ public class ChatbotServiceImpl implements ChatbotService {
     private AIAssistant buildAIAssistant(
             String platformName, String model, Map<String, String> credentials, Long threadId, ChatbotCommand command) {
         return aiAssistantFactory.createAIService(
-                getAIAssistantConfig(platformName, model, credentials, threadId),
-                aiServiceToolsProvider.getToolsProvide(command));
+                getAIAssistantConfig(platformName, model, credentials, threadId));
     }
 
     private AIAssistant prepareTalk(Long threadId, ChatbotCommand command) {
@@ -273,7 +268,7 @@ public class ChatbotServiceImpl implements ChatbotService {
     private void handleError(SseEmitter emitter, Throwable throwable) {
         log.error("Error during SSE streaming: {}", throwable.getMessage(), throwable);
         sendTalkVO(emitter, null, "Error: " + throwable.getMessage());
-        emitter.completeWithError(throwable);
+        emitter.complete();
     }
 
     private void completeEmitter(SseEmitter emitter) {

@@ -42,6 +42,9 @@ import java.util.List;
 
 public class DeepSeekAssistant extends AbstractAIAssistant {
 
+    private static final String BASE_URL_ENV_KEY = "BIGTOP_MANAGER_AI_DEEPSEEK_BASE_URL";
+    private static final String BASE_URL = "https://api.deepseek.com";
+
     public DeepSeekAssistant(Object memoryId, ChatMemory chatMemory, AIAssistant.Service aiServices) {
         super(memoryId, chatMemory, aiServices);
     }
@@ -58,15 +61,36 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
     public static class Builder extends AbstractAIAssistant.Builder {
 
         @Override
+        protected String resolveModelsBaseUrl() {
+            return resolveDefaultBaseUrl();
+        }
+
+        private String resolveDefaultBaseUrl() {
+            String envBaseUrl = System.getenv(BASE_URL_ENV_KEY);
+            if (envBaseUrl != null && !envBaseUrl.isBlank()) {
+                return envBaseUrl;
+            }
+            return BASE_URL;
+        }
+
+        @Override
         public ChatModel getChatModel() {
             String model = config.getModel();
             Assert.notNull(model, "model must not be null");
             String apiKey = config.getCredentials().get("apiKey");
             Assert.notNull(apiKey, "apiKey must not be null");
 
-            DeepSeekApi deepSeekApi = DeepSeekApi.builder().apiKey(apiKey).build();
-            DeepSeekChatOptions options =
-                    DeepSeekChatOptions.builder().model(model).build();
+            DeepSeekApi deepSeekApi = DeepSeekApi.builder()
+                    .baseUrl(resolveDefaultBaseUrl())
+                    .apiKey(apiKey)
+                    .build();
+            DeepSeekChatOptions.Builder optionsBuilder =
+                    DeepSeekChatOptions.builder().model(model);
+            if (mcpAsyncClient != null) {
+                optionsBuilder.toolCallbacks(
+                        new org.springframework.ai.mcp.AsyncMcpToolCallbackProvider(mcpAsyncClient).getToolCallbacks());
+            }
+            DeepSeekChatOptions options = optionsBuilder.build();
             return DeepSeekChatModel.builder()
                     .deepSeekApi(deepSeekApi)
                     .defaultOptions(options)
@@ -131,13 +155,17 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
 
                     StringBuilder responseBuilder = new StringBuilder();
                     return streamingChatModel.stream(prompt)
-                            .map(chatResponse -> {
-                                String content =
-                                        chatResponse.getResult().getOutput().getText();
-                                if (content != null) {
-                                    responseBuilder.append(content);
+                            .concatMap(chatResponse -> {
+                                String content = null;
+                                if (chatResponse.getResult() != null
+                                        && chatResponse.getResult().getOutput() != null) {
+                                    content = chatResponse.getResult().getOutput().getText();
                                 }
-                                return content;
+                                if (content != null && !content.isEmpty()) {
+                                    responseBuilder.append(content);
+                                    return Flux.just(content);
+                                }
+                                return Flux.empty();
                             })
                             .doOnComplete(() -> {
                                 // Save to memory when streaming completes

@@ -38,9 +38,11 @@ import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class OpenAIAssistant extends AbstractAIAssistant {
 
+    private static final String BASE_URL_ENV_KEY = "BIGTOP_MANAGER_AI_OPENAI_BASE_URL";
     private static final String BASE_URL = "https://api.openai.com";
 
     public OpenAIAssistant(Object memoryId, ChatMemory chatMemory, AIAssistant.Service aiServices) {
@@ -59,6 +61,26 @@ public class OpenAIAssistant extends AbstractAIAssistant {
     public static class Builder extends AbstractAIAssistant.Builder {
 
         @Override
+        protected String resolveModelsBaseUrl() {
+            Map<String, String> credentials = config == null ? null : config.getCredentials();
+            if (credentials != null) {
+                String baseUrl = credentials.get("baseUrl");
+                if (baseUrl != null && !baseUrl.isBlank()) {
+                    return baseUrl;
+                }
+            }
+            return resolveDefaultBaseUrl();
+        }
+
+        private String resolveDefaultBaseUrl() {
+            String envBaseUrl = System.getenv(BASE_URL_ENV_KEY);
+            if (envBaseUrl != null && !envBaseUrl.isBlank()) {
+                return envBaseUrl;
+            }
+            return BASE_URL;
+        }
+
+        @Override
         public ChatModel getChatModel() {
             String model = config.getModel();
             Assert.notNull(model, "model must not be null");
@@ -66,8 +88,13 @@ public class OpenAIAssistant extends AbstractAIAssistant {
             Assert.notNull(apiKey, "apiKey must not be null");
 
             OpenAiApi openAiApi =
-                    OpenAiApi.builder().baseUrl(BASE_URL).apiKey(apiKey).build();
-            OpenAiChatOptions options = OpenAiChatOptions.builder().model(model).build();
+                    OpenAiApi.builder().baseUrl(resolveDefaultBaseUrl()).apiKey(apiKey).build();
+            OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder().model(model);
+            if (mcpAsyncClient != null) {
+                optionsBuilder.toolCallbacks(
+                        new org.springframework.ai.mcp.AsyncMcpToolCallbackProvider(mcpAsyncClient).getToolCallbacks());
+            }
+            OpenAiChatOptions options = optionsBuilder.build();
             return OpenAiChatModel.builder()
                     .openAiApi(openAiApi)
                     .defaultOptions(options)
@@ -132,13 +159,17 @@ public class OpenAIAssistant extends AbstractAIAssistant {
 
                     StringBuilder responseBuilder = new StringBuilder();
                     return streamingChatModel.stream(prompt)
-                            .map(chatResponse -> {
-                                String content =
-                                        chatResponse.getResult().getOutput().getText();
-                                if (content != null) {
-                                    responseBuilder.append(content);
+                            .concatMap(chatResponse -> {
+                                String content = null;
+                                if (chatResponse.getResult() != null
+                                        && chatResponse.getResult().getOutput() != null) {
+                                    content = chatResponse.getResult().getOutput().getText();
                                 }
-                                return content;
+                                if (content != null && !content.isEmpty()) {
+                                    responseBuilder.append(content);
+                                    return Flux.just(content);
+                                }
+                                return Flux.empty();
                             })
                             .doOnComplete(() -> {
                                 // Save to memory when streaming completes

@@ -20,6 +20,7 @@ package org.apache.bigtop.manager.ai.assistant;
 
 import org.apache.bigtop.manager.ai.assistant.config.GeneralAssistantConfig;
 import org.apache.bigtop.manager.ai.assistant.provider.ChatMemoryStoreProvider;
+import org.apache.bigtop.manager.ai.config.McpAsyncClientManager;
 import org.apache.bigtop.manager.ai.core.AbstractAIAssistantFactory;
 import org.apache.bigtop.manager.ai.core.config.AIAssistantConfig;
 import org.apache.bigtop.manager.ai.core.enums.PlatformType;
@@ -33,12 +34,14 @@ import org.apache.bigtop.manager.ai.platform.OpenAIAssistant;
 import org.apache.bigtop.manager.ai.platform.QianFanAssistant;
 
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Slf4j
 public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
 
     @Resource
@@ -46,6 +49,9 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
 
     @Resource
     private ChatMemoryStoreProvider chatMemoryStoreProvider;
+
+    @Resource
+    private McpAsyncClientManager mcpAsyncClientManager;
 
     private void configureSystemPrompt(AIAssistant.Builder builder, SystemPrompt systemPrompt, String locale) {
         List<String> systemPrompts = new ArrayList<>();
@@ -68,7 +74,7 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
     }
 
     @Override
-    public AIAssistant createWithPrompt(AIAssistantConfig config, Object toolProvider, SystemPrompt systemPrompt) {
+    public AIAssistant createWithPrompt(AIAssistantConfig config, SystemPrompt systemPrompt) {
         GeneralAssistantConfig generalAssistantConfig = (GeneralAssistantConfig) config;
         PlatformType platformType = generalAssistantConfig.getPlatformType();
         Object id = generalAssistantConfig.getId();
@@ -81,13 +87,21 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
                 .memoryStore(chatMemoryStoreProvider.createPersistentChatMemoryStore(id))
                 .withConfig(generalAssistantConfig);
 
+        io.modelcontextprotocol.client.McpAsyncClient mcpAsyncClient = mcpAsyncClientManager.getClient();
+        if (mcpAsyncClient != null) {
+            log.info("MCP client available for platform {} (chat)", platformType);
+            builder.withMcpClient(mcpAsyncClient);
+        } else {
+            log.info("MCP client unavailable for platform {} (chat)", platformType);
+        }
+
         configureSystemPrompt(builder, systemPrompt, generalAssistantConfig.getLanguage());
 
         return builder.build();
     }
 
     @Override
-    public AIAssistant createForTest(AIAssistantConfig config, Object toolProvider) {
+    public AIAssistant createForTest(AIAssistantConfig config) {
         GeneralAssistantConfig generalAssistantConfig = (GeneralAssistantConfig) config;
         PlatformType platformType = generalAssistantConfig.getPlatformType();
         AIAssistant.Builder builder = initializeBuilder(platformType);
@@ -96,6 +110,34 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
                 .memoryStore(chatMemoryStoreProvider.createInMemoryChatMemoryStore())
                 .withConfig(generalAssistantConfig);
 
+        io.modelcontextprotocol.client.McpAsyncClient mcpAsyncClient = mcpAsyncClientManager.getClient();
+        if (mcpAsyncClient != null) {
+            log.info("MCP client available for platform {} (test)", platformType);
+            builder.withMcpClient(mcpAsyncClient);
+        } else {
+            log.info("MCP client unavailable for platform {} (test)", platformType);
+        }
+
         return builder.build();
+    }
+
+    @Override
+    public List<String> getModels(AIAssistantConfig config) {
+        GeneralAssistantConfig generalAssistantConfig = (GeneralAssistantConfig) config;
+        PlatformType platformType = generalAssistantConfig.getPlatformType();
+        try {
+            AIAssistant.Builder builder = initializeBuilder(platformType);
+            builder.withConfig(generalAssistantConfig);
+            List<String> models = builder.getModels();
+            if (models != null && !models.isEmpty()) {
+                log.info("Fetched {} dynamic models for platform {}.", models.size(), platformType);
+                return models;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch dynamic models from platform {}: {}", platformType, e.getMessage());
+        }
+
+        log.info("No dynamic models for platform {}, fallback to default models.", platformType);
+        return java.util.Collections.emptyList();
     }
 }

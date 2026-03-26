@@ -286,6 +286,12 @@
                 <version>${spring-ai.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
+                <version>${spring-ai.version}</version>
+            </dependency>
+
             <!-- Keep langchain4j for server module tool support -->
             <dependency>
                 <groupId>dev.langchain4j</groupId>

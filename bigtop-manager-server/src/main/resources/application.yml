@@ -25,6 +25,10 @@ spring:
         type: ASYNC
         sse-endpoint: /mcp/sse
         sse-message-endpoint: /mcp/messages
+      client:
+        enabled: true
+        base-url: http://localhost:8080
+        sse-endpoint: /mcp/sse
   banner:
     charset: utf-8
   application:

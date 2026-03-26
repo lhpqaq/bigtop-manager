@@ -21,13 +21,17 @@ package org.apache.bigtop.manager.ai.core.factory;
 import org.apache.bigtop.manager.ai.core.config.AIAssistantConfig;
 import org.apache.bigtop.manager.ai.core.enums.SystemPrompt;
 
+import java.util.List;
+
 public interface AIAssistantFactory {
 
-    AIAssistant createWithPrompt(AIAssistantConfig config, Object toolProvider, SystemPrompt systemPrompt);
+    AIAssistant createWithPrompt(AIAssistantConfig config, SystemPrompt systemPrompt);
 
-    AIAssistant createForTest(AIAssistantConfig config, Object toolProvider);
+    AIAssistant createForTest(AIAssistantConfig config);
 
-    default AIAssistant createAIService(AIAssistantConfig config, Object toolProvider) {
-        return createWithPrompt(config, toolProvider, SystemPrompt.DEFAULT_PROMPT);
+    default AIAssistant createAIService(AIAssistantConfig config) {
+        return createWithPrompt(config, SystemPrompt.DEFAULT_PROMPT);
     }
+
+    List<String> getModels(AIAssistantConfig config);
 }

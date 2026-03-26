@@ -18,6 +18,7 @@
  */
 package org.apache.bigtop.manager.server.mcp.tool;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.bigtop.manager.server.mcp.converter.JsonToolCallResultConverter;
 import org.apache.bigtop.manager.server.model.converter.ServiceConverter;
 import org.apache.bigtop.manager.server.model.converter.StackConverter;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class StackMcpTool implements McpTool {
 
     @Tool(
@@ -51,7 +53,7 @@ public class StackMcpTool implements McpTool {
             stackVO.setServices(ServiceConverter.INSTANCE.fromDTO2VO(serviceDTOList));
             stackVOList.add(stackVO);
         }
-
+        log.info("ListStacks tool called, total stacks: {}", stackVOList.size());
         return stackVOList;
     }
 }
