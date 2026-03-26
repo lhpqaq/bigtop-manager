@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Component
 @Slf4j
@@ -76,6 +77,14 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
 
     @Override
     public AIAssistant createWithPrompt(AIAssistantConfig config, SystemPrompt systemPrompt) {
+        return createWithPrompt(config, systemPrompt, null);
+    }
+
+    @Override
+    public AIAssistant createWithPrompt(
+            AIAssistantConfig config,
+            SystemPrompt systemPrompt,
+            Consumer<AIAssistant.ToolExecutionEvent> toolExecutionListener) {
         GeneralAssistantConfig generalAssistantConfig = (GeneralAssistantConfig) config;
         PlatformType platformType = generalAssistantConfig.getPlatformType();
         Object id = generalAssistantConfig.getId();
@@ -87,6 +96,7 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
         builder.id(id)
                 .memoryStore(chatMemoryStoreProvider.createPersistentChatMemoryStore(id))
                 .withConfig(generalAssistantConfig);
+        builder.withToolExecutionListener(toolExecutionListener);
 
         List<io.modelcontextprotocol.client.McpAsyncClient> mcpAsyncClients = mcpAsyncClientManager.getClients();
         if (!mcpAsyncClients.isEmpty()) {

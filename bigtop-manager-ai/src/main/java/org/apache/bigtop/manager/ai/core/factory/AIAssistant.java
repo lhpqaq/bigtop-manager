@@ -28,6 +28,7 @@ import org.springframework.ai.chat.model.StreamingChatModel;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface AIAssistant {
 
@@ -83,6 +84,8 @@ public interface AIAssistant {
 
         Builder withSystemPrompt(String systemPrompt);
 
+        Builder withToolExecutionListener(Consumer<ToolExecutionEvent> toolExecutionListener);
+
         AIAssistant build();
 
         ChatModel getChatModel();
@@ -93,4 +96,6 @@ public interface AIAssistant {
 
         List<String> getModels();
     }
+
+    record ToolExecutionEvent(String executionId, String toolName, String status, String payload) {}
 }

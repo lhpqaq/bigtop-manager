@@ -33,12 +33,16 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
 import org.springframework.ai.deepseek.DeepSeekChatOptions;
 import org.springframework.ai.deepseek.api.DeepSeekApi;
+import org.springframework.ai.mcp.AsyncMcpToolCallbackProvider;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.util.Assert;
 
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class DeepSeekAssistant extends AbstractAIAssistant {
 
@@ -88,8 +92,7 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
                     DeepSeekChatOptions.builder().model(model);
             List<io.modelcontextprotocol.client.McpAsyncClient> mcpClients = getMcpAsyncClients();
             if (!mcpClients.isEmpty()) {
-                optionsBuilder.toolCallbacks(
-                        new org.springframework.ai.mcp.AsyncMcpToolCallbackProvider(mcpClients).getToolCallbacks());
+                optionsBuilder.toolCallbacks(buildObservedToolCallbacks(mcpClients));
             }
             DeepSeekChatOptions options = optionsBuilder.build();
             return DeepSeekChatModel.builder()
@@ -102,6 +105,44 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
         public StreamingChatModel getStreamingChatModel() {
             // DeepSeekChatModel handles both sync and streaming
             return getChatModel();
+        }
+
+        private ToolCallback[] buildObservedToolCallbacks(List<io.modelcontextprotocol.client.McpAsyncClient> mcpClients) {
+            ToolCallback[] callbacks = new AsyncMcpToolCallbackProvider(mcpClients).getToolCallbacks();
+            ToolCallback[] observedCallbacks = new ToolCallback[callbacks.length];
+            for (int i = 0; i < callbacks.length; i++) {
+                observedCallbacks[i] = wrapToolCallback(callbacks[i]);
+            }
+            return observedCallbacks;
+        }
+
+        private ToolCallback wrapToolCallback(ToolCallback delegate) {
+            return new ToolCallback() {
+                @Override
+                public ToolDefinition getToolDefinition() {
+                    return delegate.getToolDefinition();
+                }
+
+                @Override
+                public String call(String toolInput) {
+                    return call(toolInput, null);
+                }
+
+                @Override
+                public String call(String toolInput, org.springframework.ai.chat.model.ToolContext toolContext) {
+                    String toolName = getToolDefinition().name();
+                    String executionId = UUID.randomUUID().toString();
+                    emitToolExecutionEvent(executionId, toolName, "started", toolInput);
+                    try {
+                        String result = delegate.call(toolInput, toolContext);
+                        emitToolExecutionEvent(executionId, toolName, "completed", result);
+                        return result;
+                    } catch (Exception e) {
+                        emitToolExecutionEvent(executionId, toolName, "failed", e.getMessage());
+                        throw e;
+                    }
+                }
+            };
         }
 
         public AIAssistant build() {

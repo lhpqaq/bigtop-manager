@@ -131,14 +131,13 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     @Override
     public SseEmitter talk(Long threadId, ChatbotCommand command, String message) {
-        AIAssistant aiAssistant = prepareTalk(threadId, command);
-
-        Flux<String> stringFlux =
-                (command == null) ? aiAssistant.streamAsk(message) : Flux.just(aiAssistant.ask(message));
-
         SseEmitter emitter = new SseEmitter(CHAT_SSE_TIMEOUT_MILLIS);
         AtomicBoolean emitterClosed = new AtomicBoolean(false);
         AtomicReference<Disposable> subscriptionRef = new AtomicReference<>();
+        AIAssistant aiAssistant = prepareTalk(threadId, command, emitter, emitterClosed);
+
+        Flux<String> stringFlux =
+                (command == null) ? aiAssistant.streamAsk(message) : Flux.just(aiAssistant.ask(message));
 
         Disposable subscription = stringFlux.subscribe(
                 s -> {
@@ -266,11 +265,20 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     private AIAssistant buildAIAssistant(
-            String platformName, String model, Map<String, String> credentials, Long threadId, ChatbotCommand command) {
-        return aiAssistantFactory.createAIService(getAIAssistantConfig(platformName, model, credentials, threadId));
+            String platformName,
+            String model,
+            Map<String, String> credentials,
+            Long threadId,
+            ChatbotCommand command,
+            SseEmitter emitter,
+            AtomicBoolean emitterClosed) {
+        return aiAssistantFactory.createAIService(
+                getAIAssistantConfig(platformName, model, credentials, threadId),
+                event -> sendToolExecutionEvent(emitter, emitterClosed, event));
     }
 
-    private AIAssistant prepareTalk(Long threadId, ChatbotCommand command) {
+    private AIAssistant prepareTalk(
+            Long threadId, ChatbotCommand command, SseEmitter emitter, AtomicBoolean emitterClosed) {
         ChatThreadPO chatThreadPO = validateAndGetChatThread(threadId);
         AuthPlatformPO authPlatformPO = validateAndGetActiveAuthPlatform();
 
@@ -286,18 +294,39 @@ public class ChatbotServiceImpl implements ChatbotService {
                 authPlatformDTO.getModel(),
                 authPlatformDTO.getAuthCredentials(),
                 threadId,
-                command);
+                command,
+                emitter,
+                emitterClosed);
+    }
+
+    private void sendToolExecutionEvent(
+            SseEmitter emitter, AtomicBoolean emitterClosed, AIAssistant.ToolExecutionEvent event) {
+        if (emitterClosed.get()) {
+            return;
+        }
+
+        TalkVO talkVO = new TalkVO();
+        talkVO.setEventType("tool_execution");
+        talkVO.setExecutionId(event.executionId());
+        talkVO.setToolName(event.toolName());
+        talkVO.setToolStatus(event.status());
+        talkVO.setToolPayload(event.payload());
+        sendTalkVO(emitter, emitterClosed, talkVO);
     }
 
     private boolean sendTalkVO(SseEmitter emitter, AtomicBoolean emitterClosed, String content, String finishReason) {
+        TalkVO talkVO = new TalkVO();
+        talkVO.setContent(content);
+        talkVO.setFinishReason(finishReason);
+        return sendTalkVO(emitter, emitterClosed, talkVO);
+    }
+
+    private boolean sendTalkVO(SseEmitter emitter, AtomicBoolean emitterClosed, TalkVO talkVO) {
         if (emitterClosed.get()) {
             return false;
         }
 
         try {
-            TalkVO talkVO = new TalkVO();
-            talkVO.setContent(content);
-            talkVO.setFinishReason(finishReason);
             emitter.send(talkVO);
             return true;
         } catch (IllegalStateException e) {

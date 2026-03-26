@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public abstract class AbstractAIAssistant implements AIAssistant {
     protected final AIAssistant.Service aiServices;
@@ -77,6 +78,7 @@ public abstract class AbstractAIAssistant implements AIAssistant {
 
         protected io.modelcontextprotocol.client.McpAsyncClient mcpAsyncClient;
         protected List<io.modelcontextprotocol.client.McpAsyncClient> mcpAsyncClients = new ArrayList<>();
+        protected Consumer<AIAssistant.ToolExecutionEvent> toolExecutionListener;
 
         private static final String AUTHORIZATION_HEADER = "Authorization";
 
@@ -84,6 +86,12 @@ public abstract class AbstractAIAssistant implements AIAssistant {
 
         public Builder withSystemPrompt(String systemPrompt) {
             this.systemPrompt = systemPrompt;
+            return this;
+        }
+
+        @Override
+        public Builder withToolExecutionListener(Consumer<AIAssistant.ToolExecutionEvent> toolExecutionListener) {
+            this.toolExecutionListener = toolExecutionListener;
             return this;
         }
 
@@ -131,6 +139,12 @@ public abstract class AbstractAIAssistant implements AIAssistant {
                 return List.of(mcpAsyncClient);
             }
             return Collections.emptyList();
+        }
+
+        protected void emitToolExecutionEvent(String executionId, String toolName, String status, String payload) {
+            if (toolExecutionListener != null) {
+                toolExecutionListener.accept(new AIAssistant.ToolExecutionEvent(executionId, toolName, status, payload));
+            }
         }
 
         public ChatMemory getChatMemory() {

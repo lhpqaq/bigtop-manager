@@ -22,6 +22,7 @@ import org.apache.bigtop.manager.ai.core.config.AIAssistantConfig;
 import org.apache.bigtop.manager.ai.core.enums.SystemPrompt;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface AIAssistantFactory {
 
@@ -31,6 +32,18 @@ public interface AIAssistantFactory {
 
     default AIAssistant createAIService(AIAssistantConfig config) {
         return createWithPrompt(config, SystemPrompt.DEFAULT_PROMPT);
+    }
+
+    default AIAssistant createAIService(
+            AIAssistantConfig config, Consumer<AIAssistant.ToolExecutionEvent> toolExecutionListener) {
+        return createWithPrompt(config, SystemPrompt.DEFAULT_PROMPT, toolExecutionListener);
+    }
+
+    default AIAssistant createWithPrompt(
+            AIAssistantConfig config,
+            SystemPrompt systemPrompt,
+            Consumer<AIAssistant.ToolExecutionEvent> toolExecutionListener) {
+        return createWithPrompt(config, systemPrompt);
     }
 
     List<String> getModels(AIAssistantConfig config);
