@@ -45,14 +45,7 @@
   const llmConfigStore = useLlmConfigStore()
   const menuStore = useMenuStore()
 
-  const {
-    currThread,
-    chatRecords,
-    threads,
-    hasActivePlatform,
-    loadingChatRecords,
-    streamRecords
-  } =
+  const { currThread, chatRecords, threads, hasActivePlatform, loadingChatRecords, streamRecords } =
     storeToRefs(aiChatStore)
   const { currAuthPlatform } = storeToRefs(llmConfigStore)
 
