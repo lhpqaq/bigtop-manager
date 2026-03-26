@@ -1,12 +1,31 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *    https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.bigtop.manager.ai.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import io.modelcontextprotocol.client.McpAsyncClient;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.transport.WebFluxSseClientTransport;
 import io.modelcontextprotocol.spec.McpSchema;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
@@ -47,13 +66,14 @@ public class McpAsyncClientManager {
                 String baseUrl = resolveBaseUrl();
                 log.info("Initializing MCP Async Client with baseUrl={}, sseEndpoint={}", baseUrl, sseEndpoint);
                 WebClient.Builder webClientBuilder = WebClient.builder().baseUrl(baseUrl);
-                WebFluxSseClientTransport transport =
-                        WebFluxSseClientTransport.builder(webClientBuilder).sseEndpoint(sseEndpoint).build();
+                WebFluxSseClientTransport transport = WebFluxSseClientTransport.builder(webClientBuilder)
+                        .sseEndpoint(sseEndpoint)
+                        .build();
 
                 McpAsyncClient client = McpClient.async(transport)
                         .requestTimeout(Duration.ofSeconds(30))
                         .build();
-                
+
                 client.initialize().block(Duration.ofSeconds(10));
                 client.ping().block(Duration.ofSeconds(10));
 
@@ -77,7 +97,9 @@ public class McpAsyncClientManager {
                 McpSchema.ListToolsResult listToolsResult = cursor == null || cursor.isBlank()
                         ? client.listTools().block(Duration.ofSeconds(10))
                         : client.listTools(cursor).block(Duration.ofSeconds(10));
-                if (listToolsResult == null || listToolsResult.tools() == null || listToolsResult.tools().isEmpty()) {
+                if (listToolsResult == null
+                        || listToolsResult.tools() == null
+                        || listToolsResult.tools().isEmpty()) {
                     break;
                 }
 

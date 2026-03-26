@@ -18,7 +18,6 @@
  */
 package org.apache.bigtop.manager.server.mcp.tool;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.bigtop.manager.server.mcp.converter.JsonToolCallResultConverter;
 import org.apache.bigtop.manager.server.model.converter.ServiceConverter;
 import org.apache.bigtop.manager.server.model.converter.StackConverter;
@@ -29,6 +28,8 @@ import org.apache.bigtop.manager.server.utils.StackUtils;
 
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;

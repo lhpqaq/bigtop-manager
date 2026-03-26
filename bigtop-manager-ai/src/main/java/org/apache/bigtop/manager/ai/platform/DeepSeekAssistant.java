@@ -159,7 +159,8 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
                                 String content = null;
                                 if (chatResponse.getResult() != null
                                         && chatResponse.getResult().getOutput() != null) {
-                                    content = chatResponse.getResult().getOutput().getText();
+                                    content =
+                                            chatResponse.getResult().getOutput().getText();
                                 }
                                 if (content != null && !content.isEmpty()) {
                                     responseBuilder.append(content);

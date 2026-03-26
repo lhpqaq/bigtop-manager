@@ -79,9 +79,12 @@ public class DashScopeAssistant extends AbstractAIAssistant {
             String apiKey = config.getCredentials().get("apiKey");
             Assert.notNull(apiKey, "apiKey must not be null");
 
-            OpenAiApi openAiApi =
-                    OpenAiApi.builder().baseUrl(resolveDefaultBaseUrl()).apiKey(apiKey).build();
-            OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder().model(model);
+            OpenAiApi openAiApi = OpenAiApi.builder()
+                    .baseUrl(resolveDefaultBaseUrl())
+                    .apiKey(apiKey)
+                    .build();
+            OpenAiChatOptions.Builder optionsBuilder =
+                    OpenAiChatOptions.builder().model(model);
             if (mcpAsyncClient != null) {
                 optionsBuilder.toolCallbacks(
                         new org.springframework.ai.mcp.AsyncMcpToolCallbackProvider(mcpAsyncClient).getToolCallbacks());
@@ -155,7 +158,8 @@ public class DashScopeAssistant extends AbstractAIAssistant {
                                 String content = null;
                                 if (chatResponse.getResult() != null
                                         && chatResponse.getResult().getOutput() != null) {
-                                    content = chatResponse.getResult().getOutput().getText();
+                                    content =
+                                            chatResponse.getResult().getOutput().getText();
                                 }
                                 if (content != null && !content.isEmpty()) {
                                     responseBuilder.append(content);

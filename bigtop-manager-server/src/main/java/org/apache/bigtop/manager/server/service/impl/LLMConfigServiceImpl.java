@@ -22,7 +22,6 @@ import org.apache.bigtop.manager.ai.assistant.config.GeneralAssistantConfig;
 import org.apache.bigtop.manager.ai.core.enums.PlatformType;
 import org.apache.bigtop.manager.ai.core.factory.AIAssistant;
 import org.apache.bigtop.manager.ai.core.factory.AIAssistantFactory;
-import org.apache.bigtop.manager.common.utils.JsonUtils;
 import org.apache.bigtop.manager.dao.po.AuthPlatformPO;
 import org.apache.bigtop.manager.dao.po.ChatMessagePO;
 import org.apache.bigtop.manager.dao.po.ChatThreadPO;
@@ -81,7 +80,8 @@ public class LLMConfigServiceImpl implements LLMConfigService {
     }
 
     private List<String> getDynamicModels(PlatformPO platformPO, Map<String, String> explicitCreds) {
-        PlatformType platformType = PlatformType.getPlatformType(platformPO.getName().toLowerCase());
+        PlatformType platformType =
+                PlatformType.getPlatformType(platformPO.getName().toLowerCase());
         if (platformType == null) {
             return getDefaultModels(platformPO);
         }

@@ -32,12 +32,11 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.util.Assert;
-
-import reactor.core.publisher.Flux;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -89,7 +88,8 @@ public class QianFanAssistant extends AbstractAIAssistant {
             }
 
             try {
-                WebClient webClient = WebClient.builder().baseUrl(resolveModelsBaseUrl()).build();
+                WebClient webClient =
+                        WebClient.builder().baseUrl(resolveModelsBaseUrl()).build();
                 JsonNode response = webClient
                         .get()
                         .uri(resolveModelsPath())
@@ -128,7 +128,8 @@ public class QianFanAssistant extends AbstractAIAssistant {
                     .completionsPath("/v2/chat/completions")
                     .apiKey(apiKey)
                     .build();
-            OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder().model(model);
+            OpenAiChatOptions.Builder optionsBuilder =
+                    OpenAiChatOptions.builder().model(model);
             if (mcpAsyncClient != null) {
                 optionsBuilder.toolCallbacks(
                         new org.springframework.ai.mcp.AsyncMcpToolCallbackProvider(mcpAsyncClient).getToolCallbacks());
@@ -201,7 +202,8 @@ public class QianFanAssistant extends AbstractAIAssistant {
                                 String content = null;
                                 if (chatResponse.getResult() != null
                                         && chatResponse.getResult().getOutput() != null) {
-                                    content = chatResponse.getResult().getOutput().getText();
+                                    content =
+                                            chatResponse.getResult().getOutput().getText();
                                 }
                                 if (content != null && !content.isEmpty()) {
                                     responseBuilder.append(content);

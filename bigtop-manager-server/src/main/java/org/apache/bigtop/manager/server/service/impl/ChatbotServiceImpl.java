@@ -230,8 +230,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     private AIAssistant buildAIAssistant(
             String platformName, String model, Map<String, String> credentials, Long threadId, ChatbotCommand command) {
-        return aiAssistantFactory.createAIService(
-                getAIAssistantConfig(platformName, model, credentials, threadId));
+        return aiAssistantFactory.createAIService(getAIAssistantConfig(platformName, model, credentials, threadId));
     }
 
     private AIAssistant prepareTalk(Long threadId, ChatbotCommand command) {

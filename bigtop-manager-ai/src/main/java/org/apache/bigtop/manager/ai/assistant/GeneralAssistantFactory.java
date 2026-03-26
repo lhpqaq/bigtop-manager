@@ -34,6 +34,7 @@ import org.apache.bigtop.manager.ai.platform.OpenAIAssistant;
 import org.apache.bigtop.manager.ai.platform.QianFanAssistant;
 
 import org.springframework.stereotype.Component;
+
 import lombok.extern.slf4j.Slf4j;
 
 import jakarta.annotation.Resource;

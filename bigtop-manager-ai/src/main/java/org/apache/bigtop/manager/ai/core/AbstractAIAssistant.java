@@ -26,9 +26,8 @@ import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import reactor.core.publisher.Flux;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -175,7 +174,8 @@ public abstract class AbstractAIAssistant implements AIAssistant {
             String apiKey = resolveApiKey(credentials);
 
             try {
-                WebClient webClient = WebClient.builder().baseUrl(baseUrl.trim()).build();
+                WebClient webClient =
+                        WebClient.builder().baseUrl(baseUrl.trim()).build();
                 WebClient.RequestHeadersSpec<?> requestSpec = webClient.get().uri(path);
                 applyModelRequestAuth(requestSpec, apiKey);
 
