@@ -86,9 +86,10 @@ public class DeepSeekAssistant extends AbstractAIAssistant {
                     .build();
             DeepSeekChatOptions.Builder optionsBuilder =
                     DeepSeekChatOptions.builder().model(model);
-            if (mcpAsyncClient != null) {
+            List<io.modelcontextprotocol.client.McpAsyncClient> mcpClients = getMcpAsyncClients();
+            if (!mcpClients.isEmpty()) {
                 optionsBuilder.toolCallbacks(
-                        new org.springframework.ai.mcp.AsyncMcpToolCallbackProvider(mcpAsyncClient).getToolCallbacks());
+                        new org.springframework.ai.mcp.AsyncMcpToolCallbackProvider(mcpClients).getToolCallbacks());
             }
             DeepSeekChatOptions options = optionsBuilder.build();
             return DeepSeekChatModel.builder()

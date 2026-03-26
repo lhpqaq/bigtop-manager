@@ -51,16 +51,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
 import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @Slf4j
 public class ChatbotServiceImpl implements ChatbotService {
+    private static final long CHAT_SSE_TIMEOUT_MILLIS = 30 * 60 * 1000L;
+
     @Resource
     private PlatformDao platformDao;
 
@@ -130,14 +136,45 @@ public class ChatbotServiceImpl implements ChatbotService {
         Flux<String> stringFlux =
                 (command == null) ? aiAssistant.streamAsk(message) : Flux.just(aiAssistant.ask(message));
 
-        SseEmitter emitter = new SseEmitter();
+        SseEmitter emitter = new SseEmitter(CHAT_SSE_TIMEOUT_MILLIS);
+        AtomicBoolean emitterClosed = new AtomicBoolean(false);
+        AtomicReference<Disposable> subscriptionRef = new AtomicReference<>();
 
-        stringFlux.subscribe(
-                s -> sendTalkVO(emitter, s, null),
-                throwable -> handleError(emitter, throwable),
-                () -> completeEmitter(emitter));
+        Disposable subscription = stringFlux.subscribe(
+                s -> {
+                    if (!sendTalkVO(emitter, emitterClosed, s, null)) {
+                        disposeSubscription(subscriptionRef);
+                    }
+                },
+                throwable -> {
+                    disposeSubscription(subscriptionRef);
+                    handleError(emitter, emitterClosed, throwable);
+                },
+                () -> {
+                    disposeSubscription(subscriptionRef);
+                    completeEmitter(emitter, emitterClosed);
+                });
 
-        emitter.onTimeout(emitter::complete);
+        subscriptionRef.set(subscription);
+
+        emitter.onCompletion(() -> {
+            emitterClosed.set(true);
+            disposeSubscription(subscriptionRef);
+        });
+
+        emitter.onTimeout(() -> {
+            emitterClosed.set(true);
+            disposeSubscription(subscriptionRef);
+            try {
+                emitter.complete();
+            } catch (Exception ignored) {
+            }
+        });
+
+        emitter.onError(error -> {
+            emitterClosed.set(true);
+            disposeSubscription(subscriptionRef);
+        });
 
         return emitter;
     }
@@ -252,26 +289,88 @@ public class ChatbotServiceImpl implements ChatbotService {
                 command);
     }
 
-    private void sendTalkVO(SseEmitter emitter, String content, String finishReason) {
+    private boolean sendTalkVO(SseEmitter emitter, AtomicBoolean emitterClosed, String content, String finishReason) {
+        if (emitterClosed.get()) {
+            return false;
+        }
+
         try {
             TalkVO talkVO = new TalkVO();
             talkVO.setContent(content);
             talkVO.setFinishReason(finishReason);
             emitter.send(talkVO);
+            return true;
+        } catch (IllegalStateException e) {
+            if (emitterClosed.compareAndSet(false, true)) {
+                log.warn("SSE emitter already closed, stop sending stream data: {}", e.getMessage());
+            }
+            return false;
         } catch (Exception e) {
-            log.error("Error sending data to SseEmitter", e);
-            emitter.completeWithError(e);
+            if (emitterClosed.compareAndSet(false, true)) {
+                log.error("Error sending data to SseEmitter", e);
+            }
+            try {
+                emitter.complete();
+            } catch (Exception ignored) {
+            }
+            return false;
         }
     }
 
-    private void handleError(SseEmitter emitter, Throwable throwable) {
+    private void handleError(SseEmitter emitter, AtomicBoolean emitterClosed, Throwable throwable) {
+        if (isStreamCancellation(throwable)) {
+            log.warn("SSE streaming cancelled: {}", throwable.getMessage());
+            if (emitterClosed.compareAndSet(false, true)) {
+                try {
+                    emitter.complete();
+                } catch (Exception ignored) {
+                }
+            }
+            return;
+        }
+
         log.error("Error during SSE streaming: {}", throwable.getMessage(), throwable);
-        sendTalkVO(emitter, null, "Error: " + throwable.getMessage());
-        emitter.complete();
+
+        if (!sendTalkVO(emitter, emitterClosed, null, "Error: " + throwable.getMessage())) {
+            return;
+        }
+
+        if (emitterClosed.compareAndSet(false, true)) {
+            try {
+                emitter.complete();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
-    private void completeEmitter(SseEmitter emitter) {
-        sendTalkVO(emitter, null, "completed");
-        emitter.complete();
+    private void completeEmitter(SseEmitter emitter, AtomicBoolean emitterClosed) {
+        if (!sendTalkVO(emitter, emitterClosed, null, "completed")) {
+            return;
+        }
+
+        if (emitterClosed.compareAndSet(false, true)) {
+            try {
+                emitter.complete();
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    private void disposeSubscription(AtomicReference<Disposable> subscriptionRef) {
+        Disposable disposable = subscriptionRef.getAndSet(null);
+        if (disposable != null && !disposable.isDisposed()) {
+            disposable.dispose();
+        }
+    }
+
+    private boolean isStreamCancellation(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof InterruptedException || current instanceof CancellationException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

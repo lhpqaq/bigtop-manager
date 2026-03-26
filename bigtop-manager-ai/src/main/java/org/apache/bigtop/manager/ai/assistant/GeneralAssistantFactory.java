@@ -88,10 +88,10 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
                 .memoryStore(chatMemoryStoreProvider.createPersistentChatMemoryStore(id))
                 .withConfig(generalAssistantConfig);
 
-        io.modelcontextprotocol.client.McpAsyncClient mcpAsyncClient = mcpAsyncClientManager.getClient();
-        if (mcpAsyncClient != null) {
-            log.info("MCP client available for platform {} (chat)", platformType);
-            builder.withMcpClient(mcpAsyncClient);
+        List<io.modelcontextprotocol.client.McpAsyncClient> mcpAsyncClients = mcpAsyncClientManager.getClients();
+        if (!mcpAsyncClients.isEmpty()) {
+            log.info("MCP clients available for platform {} (chat), count={}", platformType, mcpAsyncClients.size());
+            builder.withMcpClients(mcpAsyncClients);
         } else {
             log.info("MCP client unavailable for platform {} (chat)", platformType);
         }
@@ -111,10 +111,10 @@ public class GeneralAssistantFactory extends AbstractAIAssistantFactory {
                 .memoryStore(chatMemoryStoreProvider.createInMemoryChatMemoryStore())
                 .withConfig(generalAssistantConfig);
 
-        io.modelcontextprotocol.client.McpAsyncClient mcpAsyncClient = mcpAsyncClientManager.getClient();
-        if (mcpAsyncClient != null) {
-            log.info("MCP client available for platform {} (test)", platformType);
-            builder.withMcpClient(mcpAsyncClient);
+        List<io.modelcontextprotocol.client.McpAsyncClient> mcpAsyncClients = mcpAsyncClientManager.getClients();
+        if (!mcpAsyncClients.isEmpty()) {
+            log.info("MCP clients available for platform {} (test), count={}", platformType, mcpAsyncClients.size());
+            builder.withMcpClients(mcpAsyncClients);
         } else {
             log.info("MCP client unavailable for platform {} (test)", platformType);
         }

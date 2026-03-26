@@ -85,9 +85,10 @@ public class DashScopeAssistant extends AbstractAIAssistant {
                     .build();
             OpenAiChatOptions.Builder optionsBuilder =
                     OpenAiChatOptions.builder().model(model);
-            if (mcpAsyncClient != null) {
+            List<io.modelcontextprotocol.client.McpAsyncClient> mcpClients = getMcpAsyncClients();
+            if (!mcpClients.isEmpty()) {
                 optionsBuilder.toolCallbacks(
-                        new org.springframework.ai.mcp.AsyncMcpToolCallbackProvider(mcpAsyncClient).getToolCallbacks());
+                        new org.springframework.ai.mcp.AsyncMcpToolCallbackProvider(mcpClients).getToolCallbacks());
             }
             OpenAiChatOptions options = optionsBuilder.build();
             return OpenAiChatModel.builder()

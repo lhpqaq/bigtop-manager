@@ -79,6 +79,8 @@ public interface AIAssistant {
 
         Builder withMcpClient(io.modelcontextprotocol.client.McpAsyncClient mcpAsyncClient);
 
+        Builder withMcpClients(List<io.modelcontextprotocol.client.McpAsyncClient> mcpAsyncClients);
+
         Builder withSystemPrompt(String systemPrompt);
 
         AIAssistant build();

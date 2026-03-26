@@ -76,6 +76,7 @@ public abstract class AbstractAIAssistant implements AIAssistant {
         protected String systemPrompt;
 
         protected io.modelcontextprotocol.client.McpAsyncClient mcpAsyncClient;
+        protected List<io.modelcontextprotocol.client.McpAsyncClient> mcpAsyncClients = new ArrayList<>();
 
         private static final String AUTHORIZATION_HEADER = "Authorization";
 
@@ -103,7 +104,33 @@ public abstract class AbstractAIAssistant implements AIAssistant {
 
         public Builder withMcpClient(io.modelcontextprotocol.client.McpAsyncClient mcpAsyncClient) {
             this.mcpAsyncClient = mcpAsyncClient;
+            if (mcpAsyncClient != null) {
+                this.mcpAsyncClients = List.of(mcpAsyncClient);
+            }
             return this;
+        }
+
+        @Override
+        public Builder withMcpClients(List<io.modelcontextprotocol.client.McpAsyncClient> mcpAsyncClients) {
+            if (mcpAsyncClients == null || mcpAsyncClients.isEmpty()) {
+                this.mcpAsyncClients = Collections.emptyList();
+                this.mcpAsyncClient = null;
+                return this;
+            }
+
+            this.mcpAsyncClients = List.copyOf(mcpAsyncClients);
+            this.mcpAsyncClient = this.mcpAsyncClients.get(0);
+            return this;
+        }
+
+        protected List<io.modelcontextprotocol.client.McpAsyncClient> getMcpAsyncClients() {
+            if (mcpAsyncClients != null && !mcpAsyncClients.isEmpty()) {
+                return mcpAsyncClients;
+            }
+            if (mcpAsyncClient != null) {
+                return List.of(mcpAsyncClient);
+            }
+            return Collections.emptyList();
         }
 
         public ChatMemory getChatMemory() {
