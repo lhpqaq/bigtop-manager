@@ -196,7 +196,7 @@
           ></a-select>
         </template>
         <template #model="{ item }">
-          <a-space.Compact style="width: 100%">
+          <div style="display: flex; gap: 8px; width: 100%">
             <a-select
               v-model:value="currPlatform[item.field]"
               style="width: calc(100% - 96px)"
@@ -206,7 +206,7 @@
             <a-button style="width: 96px" :loading="loadingModels" @click="handleRefreshModels">
               {{ t('llmConfig.fetch_models') }}
             </a-button>
-          </a-space.Compact>
+          </div>
         </template>
       </form-builder>
       <template #footer>
