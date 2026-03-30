@@ -18,13 +18,21 @@
  */
 package org.apache.bigtop.manager.server.utils;
 
+import org.apache.bigtop.manager.server.config.JwtProperties;
+
+import org.springframework.stereotype.Component;
+
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
+@Component
 public class JWTUtils {
 
     public static final String CLAIM_ID = "id";
@@ -33,23 +41,69 @@ public class JWTUtils {
 
     public static final String CLAIM_TOKEN_VERSION = "token_version";
 
-    protected static final String SIGN = "r0PGVyvjKOxUBwGt";
+    /**
+     * Dev-only fallback secret to preserve local boot for contributors.
+     * <p>
+     * In production, configure `bigtop-manager.security.jwt.secret`.
+     */
+    static final String DEFAULT_DEV_SECRET = "r0PGVyvjKOxUBwGt";
 
-    // Token validity period (days)
-    private static final int TOKEN_EXPIRATION_DAYS = 7;
+    private final JwtProperties jwtProperties;
 
-    public static String generateToken(Long userId, String username, Integer tokenVersion) {
-        Instant expireTime = Instant.now().plus(TOKEN_EXPIRATION_DAYS, ChronoUnit.DAYS);
+    public JWTUtils(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
+
+    public String generateToken(Long userId, String username, Integer tokenVersion) {
+        Instant now = Instant.now();
+        Instant expireTime = now.plus(jwtProperties.getExpirationDays(), ChronoUnit.DAYS);
 
         return JWT.create()
+                .withIssuer(jwtProperties.getIssuer())
+                .withAudience(jwtProperties.getAudience())
+                .withIssuedAt(Date.from(now))
                 .withClaim(CLAIM_ID, userId)
                 .withClaim(CLAIM_USERNAME, username)
                 .withClaim(CLAIM_TOKEN_VERSION, tokenVersion)
-                .withExpiresAt(expireTime)
-                .sign(Algorithm.HMAC256(SIGN));
+                .withExpiresAt(Date.from(expireTime))
+                .sign(Algorithm.HMAC256(getSigningSecret()));
     }
 
-    public static DecodedJWT resolveToken(String token) {
-        return JWT.require(Algorithm.HMAC256(SIGN)).build().verify(token);
+    public DecodedJWT resolveToken(String token) throws JWTVerificationException {
+        Algorithm algorithm = Algorithm.HMAC256(getSigningSecret());
+        JWTVerifier verifier = JWT.require(algorithm)
+                .withIssuer(jwtProperties.getIssuer())
+                .withAudience(jwtProperties.getAudience())
+                .build();
+
+        DecodedJWT decodedJWT = verifier.verify(token);
+
+        // Enforce issued-at to mitigate tokens without freshness metadata.
+        Date issuedAt = decodedJWT.getIssuedAt();
+        if (issuedAt == null) {
+            throw new JWTVerificationException("Missing iat");
+        }
+
+        // Reject tokens issued too far in the future (clock skew).
+        Instant now = Instant.now();
+        if (issuedAt.toInstant().isAfter(now.plus(5, ChronoUnit.MINUTES))) {
+            throw new JWTVerificationException("iat is in the future");
+        }
+
+        return decodedJWT;
+    }
+
+    private String getSigningSecret() {
+        String secret = jwtProperties.getSecret();
+        if (secret != null && !secret.isBlank()) {
+            return secret;
+        }
+
+        if (jwtProperties.isAllowDefaultSecret()) {
+            return DEFAULT_DEV_SECRET;
+        }
+
+        throw new IllegalStateException(
+                "JWT secret is not configured. Please set bigtop-manager.security.jwt.secret (or enable allowDefaultSecret for dev only).");
     }
 }

@@ -43,6 +43,9 @@ public class LoginServiceImpl implements LoginService {
     @Resource
     private UserDao userDao;
 
+    @Resource
+    private JWTUtils jwtUtils;
+
     @Override
     public LoginVO login(LoginDTO loginDTO) {
         String username = loginDTO.getUsername();
@@ -75,7 +78,7 @@ public class LoginServiceImpl implements LoginService {
         CacheUtils.setCache(
                 Caches.CACHE_USER, user.getId().toString(), userVO, Caches.USER_EXPIRE_TIME_DAYS, TimeUnit.DAYS);
 
-        String token = JWTUtils.generateToken(user.getId(), user.getUsername(), user.getTokenVersion());
+        String token = jwtUtils.generateToken(user.getId(), user.getUsername(), user.getTokenVersion());
         LoginVO loginVO = new LoginVO();
         loginVO.setToken(token);
         return loginVO;

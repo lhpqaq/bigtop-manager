@@ -31,6 +31,18 @@ log() {
     echo -e "\033[32m[LOG] $1\033[0m"
 }
 
+# Generate a random JWT secret for local dev if user didn't provide one.
+init_jwt_secret() {
+  if [ -z "${BIGTOP_MANAGER_JWT_SECRET}" ]; then
+    # Dev-support default. Override by exporting BIGTOP_MANAGER_JWT_SECRET before running this script.
+    BIGTOP_MANAGER_JWT_SECRET="r0PGVyvjKOxUBwGt"
+    export BIGTOP_MANAGER_JWT_SECRET
+    log "Defaulted BIGTOP_MANAGER_JWT_SECRET for dev-support"
+  else
+    log "Using provided BIGTOP_MANAGER_JWT_SECRET for dev-support"
+  fi
+}
+
 build() {
     log "Build on docker: $SKIP_COMPILE"
     if ! $SKIP_COMPILE; then
@@ -54,6 +66,7 @@ destroy() {
 
 create() {
   log "Create Containers!!!"
+  init_jwt_secret
   docker network inspect bigtop-manager >/dev/null 2>&1 || docker network create --driver bridge bigtop-manager
   create_db
   create_container
@@ -65,13 +78,17 @@ create_container() {
     container_name="bm-$i"
     log "Create ${container_name}"
     if [ $i -eq 1 ]; then
-      docker run -itd -p 15005:5005 -p 15006:5006 -p 18080:8080 --name ${container_name} --hostname ${container_name} --network bigtop-manager --cap-add=SYS_TIME bigtop-manager/develop:${OS}
+      docker run -itd -p 15005:5005 -p 15006:5006 -p 18080:8080 \
+        -e BIGTOP_MANAGER_JWT_SECRET="${BIGTOP_MANAGER_JWT_SECRET}" \
+        --name ${container_name} --hostname ${container_name} --network bigtop-manager --cap-add=SYS_TIME bigtop-manager/develop:${OS}
       docker cp ../../../bigtop-manager-dist/target/apache-bigtop-manager-*-server.tar.gz ${container_name}:/opt/bigtop-manager-server.tar.gz
       docker exec ${container_name} bash -c "cd /opt && tar -zxvf bigtop-manager-server.tar.gz"
       docker exec ${container_name} bash -c "ssh-keygen -f '/root/.ssh/id_rsa' -N '' -t rsa"
       SERVER_PUB_KEY=`docker exec ${container_name} /bin/cat /root/.ssh/id_rsa.pub`
     else
-      docker run -itd --name ${container_name} --hostname ${container_name} --network bigtop-manager --cap-add=SYS_TIME bigtop-manager/develop:${OS}
+      docker run -itd \
+        -e BIGTOP_MANAGER_JWT_SECRET="${BIGTOP_MANAGER_JWT_SECRET}" \
+        --name ${container_name} --hostname ${container_name} --network bigtop-manager --cap-add=SYS_TIME bigtop-manager/develop:${OS}
     fi
 
     docker cp ../../../bigtop-manager-dist/target/apache-bigtop-manager-*-agent.tar.gz ${container_name}:/opt/bigtop-manager-agent.tar.gz
@@ -112,6 +129,11 @@ create_container() {
         docker exec ${container} bash -c "PGPASSWORD=postgres psql -h bm-postgres -p5432 -U postgres -d bigtop_manager -f /opt/bigtop-manager-server/ddl/PostgreSQL-DDL-CREATE.sql"
         docker exec ${container} bash -c "sed -i 's/localhost:5432/bm-postgres:5432/' /opt/bigtop-manager-server/conf/application.yml"
       fi
+
+      # Inject JWT secret into server config inside container (for environments where env vars are not propagated)
+      docker exec ${container} bash -c "grep -q '^\s*secret:' /opt/bigtop-manager-server/conf/application.yml || true"
+      docker exec ${container} bash -c "sed -i 's/^\(\s*secret:\).*/\1 \${BIGTOP_MANAGER_JWT_SECRET}/' /opt/bigtop-manager-server/conf/application.yml || true"
+
       docker exec ${container} bash -c "nohup /bin/bash /opt/bigtop-manager-server/bin/server.sh start --debug > /dev/null 2>&1 &"
     fi
     log "All Service Started!!!"

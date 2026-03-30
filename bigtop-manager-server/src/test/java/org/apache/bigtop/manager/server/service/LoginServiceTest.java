@@ -27,6 +27,7 @@ import org.apache.bigtop.manager.server.exception.ApiException;
 import org.apache.bigtop.manager.server.model.dto.LoginDTO;
 import org.apache.bigtop.manager.server.service.impl.LoginServiceImpl;
 import org.apache.bigtop.manager.server.utils.CacheUtils;
+import org.apache.bigtop.manager.server.utils.JWTUtils;
 import org.apache.bigtop.manager.server.utils.PasswordUtils;
 import org.apache.bigtop.manager.server.utils.Pbkdf2Utils;
 
@@ -50,6 +51,9 @@ public class LoginServiceTest {
 
     @Mock
     private UserDao userDao;
+
+    @Mock
+    private JWTUtils jwtUtils;
 
     @InjectMocks
     private LoginService loginService = new LoginServiceImpl();
@@ -107,6 +111,7 @@ public class LoginServiceTest {
         LoginDTO loginDTO = createLoginDTO(RAW_PASSWORD);
 
         when(userDao.findByUsername(any())).thenReturn(mockUser);
+        when(jwtUtils.generateToken(any(), any(), any())).thenReturn("test-token");
 
         Object result = loginService.login(loginDTO);
         assertNotNull(result);
