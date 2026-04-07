@@ -48,6 +48,9 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JWTUtils jwtUtils;
+
     private ResponseEntity<?> responseEntity;
 
     @Override
@@ -89,7 +92,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         try {
-            DecodedJWT decodedJWT = JWTUtils.resolveToken(token);
+            DecodedJWT decodedJWT = jwtUtils.resolveToken(token);
             Long userId = decodedJWT.getClaim(JWTUtils.CLAIM_ID).asLong();
             Integer tokenVersion =
                     decodedJWT.getClaim(JWTUtils.CLAIM_TOKEN_VERSION).asInt();
